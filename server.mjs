@@ -1,6 +1,6 @@
 // خادم Node لـ Railway — البيانات على قرص دائم (Volume) في DATA_DIR
 import JSZipLib from 'jszip';
-import { webcrypto, timingSafeEqual } from 'node:crypto';
+import { webcrypto } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
@@ -773,35 +773,7 @@ const LOCAL = (() => {
   const R = [];
   const route = (method, pattern, fn) => R.push({ method, re: new RegExp('^' + pattern.replace(/:(\w+)/g, '(?<$1>[^/]+)') + '$'), fn });
 
-  // إعادة تعيين كلمة مرور المدير برمز سري مضبوط في إعدادات الخدمة
-route('POST', '/api/admin/reset-password', async ({ body }) => {
-  const resetToken = process.env.ADMIN_RESET_TOKEN || '';
-  const suppliedToken = String(body.token || '');
-  const expectedBytes = Buffer.from(resetToken, 'utf8');
-  const suppliedBytes = Buffer.from(suppliedToken, 'utf8');
-  if (expectedBytes.length < 32 || suppliedBytes.length !== expectedBytes.length || !timingSafeEqual(suppliedBytes, expectedBytes)) {
-    throw new ApiError('تعذر التحقق من رمز إعادة التعيين', 403);
-  }
-  if (D.settings.admin_reset_token_hash && await checkPw(D.settings.admin_reset_token_hash, suppliedToken)) {
-    throw new ApiError('استُخدم هذا الرمز مسبقًا', 409);
-  }
-  const password = String(body.password || '');
-  if (password.length < 12 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
-    throw new ApiError('كلمة المرور يجب أن تكون 12 خانة على الأقل، وتحتوي أحرفًا وأرقامًا', 400);
-  }
-  const admin = D.users.find((u) => u.username === 'admin' && u.active);
-  if (!admin) throw new ApiError('حساب المدير غير موجود أو معطّل', 404);
-  admin.pass_hash = await hashPw(password);
-  admin.must_change_pw = 1;
-  admin.failed = 0;
-  admin.locked_until = null;
-  admin.last_login = null;
-  D.settings.admin_reset_token_hash = await hashPw(suppliedToken);
-  await save();
-  return { ok: true };
-});
-
-// الدخول
+  // الدخول
   route('POST', '/api/login', async ({ body }) => {
     const u = D.users.find((x) => x.username.toLowerCase() === String(body.username || '').trim().toLowerCase());
     if (u && u.locked_until && u.locked_until > Date.now()) throw new ApiError('تم إيقاف الدخول مؤقتًا بسبب محاولات خاطئة متكررة، حاول بعد 10 دقائق', 429);
@@ -1701,7 +1673,7 @@ route('POST', '/api/admin/reset-password', async ({ body }) => {
 
 
 // ------------------------------------------------------------------ ربط الخادم
-const SEED_ADMIN_HASH = 'p2$7a2502919b6fac4928e160da031de73e$104d42d8223429bbe91a9cd58700126bbc139d509ab01a6d968117f6868f152c';
+const SEED_ADMIN_HASH = 'p2$e3f9eb61e642d19b1fa407273e4e567c$5b44960c6c0107686b040b0cbbb1e3931328755e1997167d551b27ba1b8c6122';
 let store = null;
 const st = () => (store ||= getStore({ name: 'pharma-system', consistency: 'strong' }));
 const textKey = (k) => k === 'ver' || k.startsWith('imp:') || k === 'secret';
@@ -1811,7 +1783,7 @@ http.createServer(async (req, res) => {
       res.writeHead(r.status, h); return res.end(Buffer.from(await r.arrayBuffer()));
     }
     if (url.pathname === '/health') { res.writeHead(200); return res.end('ok'); }
-    const file = url.pathname === '/admin-reset' || url.pathname === '/admin-reset/' ? 'admin-reset.html' : url.pathname === '/portal' || url.pathname === '/portal/' || url.pathname === '/portal.html' ? 'portal.html' : 'index.html';
+    const file = url.pathname === '/portal' || url.pathname === '/portal/' || url.pathname === '/portal.html' ? 'portal.html' : 'index.html';
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Frame-Options': 'DENY', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' });
     res.end(fs.readFileSync(path.join(PUB, file)));
   } catch (e) { console.error(e); res.writeHead(500); res.end('{"error":"خطأ في الخادم"}'); }
