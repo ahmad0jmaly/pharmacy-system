@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>إعادة تعيين كلمة مرور المدير</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#f4f3f8;color:#24232b;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}.card{width:min(100%,440px);padding:28px;background:#fff;border:1px solid #e8e6ed;border-radius:18px;box-shadow:0 10px 30px #14121b12}h1{margin:0 0 8px;font-size:22px}.hint{margin:0 0 22px;color:#686673;line-height:1.7;font-size:14px}label{display:block;margin:16px 0 7px;font-size:14px}input{width:100%;padding:12px;border:1px solid #d8d6df;border-radius:10px;font:inherit;direction:ltr;text-align:left}button{width:100%;margin-top:20px;padding:13px;border:0;border-radius:10px;background:#0b6e73;color:white;font:inherit;font-weight:700;cursor:pointer}button:disabled{opacity:.6;cursor:wait}.msg{min-height:24px;margin-top:14px;font-size:14px}.bad{color:#a12626}.good{color:#176b3a}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>إعادة تعيين كلمة مرور المدير</h1>
+    <p class="hint">أدخل رمز إعادة التعيين الذي أعددته في إعدادات Render، ثم اختر كلمة مرور جديدة. الرمز صالح لاستخدام واحد.</p>
+    <form id="resetForm" autocomplete="off">
+      <label for="token">رمز إعادة التعيين</label>
+      <input id="token" name="token" type="password" minlength="32" required autocomplete="new-password">
+      <label for="password">كلمة المرور الجديدة</label>
+      <input id="password" name="password" type="password" minlength="12" required autocomplete="new-password">
+      <button id="submit" type="submit">حفظ كلمة المرور</button>
+      <div id="message" class="msg" role="status" aria-live="polite"></div>
+    </form>
+  </main>
+  <script>
+    const form=document.getElementById('resetForm'),button=document.getElementById('submit'),message=document.getElementById('message');
+    form.addEventListener('submit',async event=>{
+      event.preventDefault();button.disabled=true;message.className='msg';message.textContent='جارٍ حفظ كلمة المرور…';
+      try{
+        const response=await fetch('/api/admin/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:form.token.value,password:form.password.value})});
+        const result=await response.json();
+        if(!response.ok)throw new Error(result.error||'تعذر إتمام إعادة التعيين');
+        form.reset();message.className='msg good';message.textContent='تم تغيير كلمة المرور. سجّل الدخول باسم admin.';
+      }catch(error){message.className='msg bad';message.textContent=error.message||'حدث خطأ؛ حاول مرة أخرى.';}
+      finally{button.disabled=false;}
+    });
+  </script>
+</body>
+</html>
