@@ -1,0 +1,14 @@
+{
+  "name": "pharmacy-system",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1"
+  }
+}

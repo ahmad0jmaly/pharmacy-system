@@ -1,0 +1,1786 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F2F2F7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="robots" content="noindex">
+<title>نظام طلبات العلاج والتوصيل</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   تصميم وفق إرشادات Apple (HIG): خطوط النظام، مجموعات بطاقات، ألوان النظام للتنبيهات
+   ========================================================================== */
+:root{
+  --brand:#0B6E73;
+  --brand-2:color-mix(in srgb,var(--brand) 82%,#fff);
+  --brand-soft:color-mix(in srgb,var(--brand) 10%,#fff);
+  --brand-ink:color-mix(in srgb,var(--brand) 80%,#000);
+  --bg:#F2F2F7; --panel:#FFFFFF; --panel-2:#F9F9FB;
+  --ink:#1C1C1E; --muted:#6E6E73; --muted-2:#8E8E93;
+  --line:rgba(60,60,67,.16); --line2:rgba(60,60,67,.08); --fill:rgba(118,118,128,.12);
+  /* ألوان التنبيه (ألوان النظام في Apple) */
+  --red:#D70015; --red-sys:#FF3B30; --red-soft:#FFEBEA;
+  --amber:#B25000; --amber-sys:#FF9500; --amber-soft:#FFF3E0;
+  --yellow-sys:#FFCC00;
+  --green:#248A3D; --green-sys:#34C759; --green-soft:#E8F7EC;
+  --blue:#0062CC; --blue-sys:#007AFF; --blue-soft:#E8F1FF;
+  --purple:#8944AB; --purple-soft:#F4EAFA; --gray-soft:#F2F2F7;
+  --radius:14px; --radius-sm:10px;
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 2px 10px rgba(0,0,0,.04);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.18);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Arabic","IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit;letter-spacing:inherit}
+a{color:var(--brand)}
+.num,.mono{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;white-space:nowrap}
+.mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.92em;letter-spacing:0}
+svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- الهيكل */
+.app{display:grid;grid-template-columns:264px 1fr;min-height:100vh}
+.side{background:rgba(246,246,248,.86);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-inline-end:1px solid var(--line);padding:18px 12px;position:sticky;top:0;height:100vh;overflow:auto;display:flex;flex-direction:column}
+.brand{display:flex;gap:12px;align-items:center;padding:4px 8px 20px}
+.brand .logo{width:42px;height:42px;border-radius:11px;background:var(--brand);display:grid;place-items:center;color:#fff;font-weight:700;font-size:18px;flex:none;overflow:hidden}
+.brand .logo img{width:100%;height:100%;object-fit:contain;background:#fff}
+.brand b{display:block;font-size:15px;line-height:1.3}
+.brand small{color:var(--muted);font-size:12px;line-height:1.35;display:block}
+.nav a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;color:var(--ink);text-decoration:none;margin-bottom:1px;font-size:14.5px}
+.nav a svg{color:var(--brand)}
+.nav a:hover{background:var(--fill)}
+.nav a.on{background:var(--brand);color:#fff}
+.nav a.on svg{color:#fff}
+.nav a .cnt{margin-inline-start:auto;background:var(--fill);border-radius:20px;padding:0 8px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.nav a .cnt.alert{background:var(--red-sys);color:#fff}
+.nav a.on .cnt{background:rgba(255,255,255,.25);color:#fff}
+.nav .sec{font-size:12px;color:var(--muted-2);padding:16px 10px 6px;font-weight:600}
+.side .me{margin-top:auto;border-top:1px solid var(--line);padding:14px 8px 0;font-size:13px;color:var(--muted)}
+.side .me b{color:var(--ink);display:block;font-size:14px}
+.side .me .row{margin-top:10px}
+.main{padding:28px 32px 80px;min-width:0;max-width:1400px}
+.topbar{display:flex;align-items:flex-end;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+.topbar h1{font-size:30px;line-height:1.15;margin:0;font-weight:700;letter-spacing:-.02em}
+.topbar .sub{color:var(--muted);font-size:14px;margin-top:4px}
+.topbar .actions{margin-inline-start:auto;display:flex;gap:8px;flex-wrap:wrap}
+.btn.menu-btn{display:none}
+.tabbar{display:none}
+
+/* ---------- عناصر */
+.card{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.card h3{margin:0 0 12px;font-size:17px;font-weight:600}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--panel);border-radius:var(--radius);padding:14px 16px;cursor:pointer;box-shadow:var(--shadow);transition:transform .15s}
+.kpi:active{transform:scale(.98)}
+.kpi .v{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.kpi .l{color:var(--muted);font-size:13px}
+.kpi.warn .v{color:var(--red)} .kpi.ok .v{color:var(--green)} .kpi.amber .v{color:var(--amber)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;background:var(--fill);border-radius:var(--radius-sm);padding:8px 16px;min-height:36px;cursor:pointer;white-space:nowrap;text-decoration:none;color:var(--brand);font-size:14.5px;font-weight:600;transition:opacity .15s,transform .1s}
+.btn:hover{opacity:.85}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.danger{color:var(--red);background:var(--red-soft)}
+.btn.green{background:var(--green-sys);color:#fff}
+.btn.danger-fill{background:var(--red-sys);color:#fff}
+.btn.wa{background:#25D366;color:#fff}
+.btn.sm{padding:5px 12px;min-height:30px;font-size:13px;border-radius:8px}
+.btn.lg{min-height:50px;font-size:17px;border-radius:12px;padding:12px 20px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.icon-btn{border:none;background:none;cursor:pointer;color:var(--muted-2);padding:2px 5px;border-radius:6px;font-size:13px}
+.icon-btn:hover{background:var(--fill);color:var(--brand)}
+.badge{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:2px 10px;font-size:12.5px;font-weight:600;background:var(--fill);color:var(--muted);white-space:nowrap;line-height:1.5}
+.b-red{background:var(--red-soft);color:var(--red)} .b-amber{background:var(--amber-soft);color:var(--amber)}
+.b-green{background:var(--green-soft);color:var(--green)} .b-blue{background:var(--blue-soft);color:var(--blue)}
+.b-purple{background:var(--purple-soft);color:var(--purple)} .b-brand{background:var(--brand-soft);color:var(--brand-ink)}
+.dot{width:12px;height:12px;border-radius:4px;display:inline-block;vertical-align:middle;border:1px solid rgba(0,0,0,.1)}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+input[type=text],input[type=search],input[type=password],input[type=date],input[type=number],input[type=tel],select,textarea{
+  border:1px solid var(--line);background:var(--panel);border-radius:var(--radius-sm);padding:8px 12px;min-height:38px;min-width:0;font-size:15px}
+select{appearance:none;-webkit-appearance:none;padding-inline-end:30px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%238E8E93' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 12px center}
+input[type=search]{background:var(--fill);border-color:transparent}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 22%,transparent)}
+textarea{width:100%;resize:vertical;min-height:80px}
+.filters input[type=search]{width:280px}
+label.f{display:block;margin-bottom:12px}
+label.f>span{display:block;font-size:13px;color:var(--muted);margin-bottom:5px;font-weight:500}
+label.f>input,label.f>select,label.f>textarea{width:100%}
+.req::after{content:" *";color:var(--red-sys)}
+.check{display:inline-flex;gap:8px;align-items:center;cursor:pointer}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--brand)}
+.hint{color:var(--muted);font-size:13px}
+.err{color:var(--red);font-size:13.5px}
+
+table.t{width:100%;border-collapse:separate;border-spacing:0;background:var(--panel);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.t th{background:var(--panel-2);font-weight:600;font-size:12.5px;color:var(--muted);text-align:start;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.t td{padding:11px 12px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.t tr:last-child td{border-bottom:none}
+.t tbody tr.click{cursor:pointer}
+.t tbody tr.click:hover td{background:var(--panel-2)}
+.t tr.sel td{background:var(--brand-soft)}
+.tw{overflow:auto;border-radius:var(--radius)}
+.empty{padding:40px;text-align:center;color:var(--muted)}
+.pager{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:12px;color:var(--muted);font-size:13px}
+.bulk{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--brand-soft);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:12px}
+
+/* شريط مقسّم (Segmented control) */
+.tabs{display:inline-flex;gap:2px;background:var(--fill);border-radius:10px;padding:2px;margin-bottom:16px;flex-wrap:wrap;max-width:100%}
+.tabs button{border:none;background:none;padding:6px 14px;cursor:pointer;color:var(--ink);border-radius:8px;font-size:13.5px;font-weight:500}
+.tabs button.on{background:var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.12);font-weight:600}
+
+/* ---------- نوافذ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.32);z-index:80;display:flex;align-items:flex-start;justify-content:center;padding:5vh 16px;overflow:auto;animation:fade .15s}
+.overlay.dr{z-index:55}
+@keyframes fade{from{opacity:0}}
+@keyframes up{from{transform:translateY(24px);opacity:0}}
+.modal{background:var(--panel);border-radius:16px;width:min(620px,100%);box-shadow:var(--shadow-lg);display:flex;flex-direction:column;animation:up .2s ease-out}
+.modal.wide{width:min(980px,100%)}
+.modal .mh{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line2)}
+.modal .mh h2{font-size:18px;margin:0;font-weight:700}
+.modal .mh .x{margin-inline-start:auto;border:none;background:var(--fill);width:30px;height:30px;border-radius:50%;font-size:18px;cursor:pointer;color:var(--muted);line-height:1}
+.modal .mb{padding:18px 20px}
+.modal .mf{padding:12px 20px;border-top:1px solid var(--line2);display:flex;gap:8px;flex-wrap:wrap;background:var(--panel-2);border-radius:0 0 16px 16px}
+.drawer{position:fixed;top:0;bottom:0;inset-inline-start:0;width:min(720px,100%);background:var(--bg);z-index:60;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;animation:fade .15s}
+.drawer .dh{padding:18px 20px;background:var(--panel);border-bottom:1px solid var(--line2);display:flex;gap:12px;align-items:flex-start}
+.drawer .db{overflow:auto;padding:18px 20px;flex:1}
+.drawer .dh h2{margin:0;font-size:22px;font-weight:700}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:0;font-size:14.5px;background:var(--panel);border-radius:var(--radius);overflow:hidden}
+.kv dt,.kv dd{padding:10px 14px;border-bottom:1px solid var(--line2);margin:0}
+.kv dt{color:var(--muted)} .kv dd{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.note-internal{background:var(--amber-soft);border-radius:12px;padding:10px 14px;font-size:14px}
+.note-internal::before{content:"ملاحظة داخلية — لا تُرسل للمريض";display:block;font-size:12px;color:var(--amber);font-weight:700;margin-bottom:2px}
+.note-patient{background:var(--green-soft);border-radius:12px;padding:10px 14px;font-size:14px}
+.note-patient::before{content:"رسالة للمريض";display:block;font-size:12px;color:var(--green);font-weight:700;margin-bottom:2px}
+.timeline{list-style:none;margin:0;padding:0;background:var(--panel);border-radius:var(--radius)}
+.timeline li{padding:10px 14px;border-bottom:1px solid var(--line2);font-size:14px}
+.timeline li:last-child{border-bottom:none}
+.timeline li small{color:var(--muted)}
+.decisions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.decisions button{border:2px solid transparent;background:var(--fill);border-radius:12px;padding:14px;cursor:pointer;text-align:start}
+.decisions button b{display:block;font-size:15px}
+.decisions button small{color:var(--muted)}
+.decisions button.on{border-color:var(--brand);background:var(--brand-soft)}
+.decisions button[data-d=not_eligible].on{border-color:var(--red-sys);background:var(--red-soft)}
+.decisions button[data-d=no_rx].on{border-color:var(--purple);background:var(--purple-soft)}
+.decisions button[data-d=wrong_data].on{border-color:var(--amber-sys);background:var(--amber-soft)}
+.decisions button[data-d=eligible].on{border-color:var(--green-sys);background:var(--green-soft)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chip{border:none;background:var(--fill);border-radius:20px;padding:5px 12px;cursor:pointer;font-size:13px;font-weight:600;color:var(--brand)}
+.chip:hover{background:var(--brand-soft)}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(28,28,30,.92);backdrop-filter:blur(10px);color:#fff;padding:12px 20px;border-radius:14px;z-index:100;box-shadow:var(--shadow-lg);max-width:90vw;font-weight:500;animation:up .2s}
+.toast.bad{background:var(--red-sys)}
+.pw-box{background:var(--brand-soft);border-radius:14px;padding:18px;text-align:center}
+.pw-box .mono{font-size:24px;letter-spacing:2px;display:block;margin:6px 0 12px;color:var(--brand-ink)}
+
+/* ---------- الدخول */
+.login-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);padding:24px 16px;gap:16px}
+.login-brand{text-align:center;margin-bottom:6px}
+.login-brand .logo{width:72px;height:72px;border-radius:18px;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:30px;font-weight:700;margin:0 auto 12px;overflow:hidden;box-shadow:var(--shadow)}
+.login-brand .logo img{width:100%;height:100%;object-fit:contain;background:#fff}
+.login-brand h1{margin:0;font-size:24px;font-weight:700}
+.login-brand p{margin:4px 0 0;color:var(--muted)}
+.portal-cta{display:flex;align-items:center;gap:14px;width:min(400px,100%);background:var(--brand);color:#fff;border-radius:16px;padding:16px 18px;text-decoration:none;box-shadow:var(--shadow)}
+.portal-cta svg{width:28px;height:28px;stroke:#fff}
+.portal-cta b{display:block;font-size:17px}
+.portal-cta span{font-size:13px;opacity:.85}
+.portal-cta .chev{margin-inline-start:auto;font-size:22px;opacity:.8}
+.login{background:var(--panel);border-radius:16px;padding:24px;width:min(400px,100%);box-shadow:var(--shadow)}
+.login h1{margin:0 0 4px;font-size:20px}
+.login p{margin:0 0 16px;color:var(--muted);font-size:14px}
+.login .btn{width:100%;min-height:46px;font-size:16px}
+
+.bar{height:6px;background:var(--fill);border-radius:5px;overflow:hidden;min-width:80px}
+.bar i{display:block;height:100%;background:var(--brand)}
+.sep{height:1px;background:var(--line2);margin:16px 0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.section-title{font-size:13px;color:var(--muted);font-weight:600;margin:18px 4px 8px;text-transform:none}
+
+/* ---------- سلامة الصرف */
+.safety{display:flex;align-items:center;gap:14px;border-radius:var(--radius);padding:14px 18px;margin-bottom:18px;box-shadow:var(--shadow);background:var(--panel);cursor:pointer}
+.safety .ic{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;flex:none}
+.safety .ic svg{width:22px;height:22px;stroke:#fff}
+.safety.ok .ic{background:var(--green-sys)} .safety.high .ic{background:var(--amber-sys)} .safety.critical .ic{background:var(--red-sys)}
+.safety.critical{background:var(--red-soft)} .safety.high{background:var(--amber-soft)}
+.safety b{display:block;font-size:16px}
+.safety span{color:var(--muted);font-size:13.5px}
+.mon{display:grid;gap:12px}
+.mon-item{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.mon-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer}
+.mon-head .n{font-size:24px;font-weight:700;min-width:46px;text-align:center;font-variant-numeric:tabular-nums}
+.mon-head b{display:block}
+.mon-head small{color:var(--muted)}
+.mon-item.critical .n{color:var(--red)} .mon-item.high .n{color:var(--amber)} .mon-item.info .n{color:var(--blue)}
+.mon-item.zero .n{color:var(--green)}
+.mon-item.zero{opacity:.7}
+.mon-body{border-top:1px solid var(--line2);padding:10px 16px 14px}
+
+/* ---------- مراجعة الصيدلي: مربعات التواريخ */
+.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12.5px;margin:0 0 14px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend .lg{display:inline-block;width:10px;height:10px;border-radius:50%}
+.lg.red{background:var(--red-sys)}.lg.amber{background:var(--amber-sys)}.lg.blue{background:var(--blue-sys)}.lg.gray{background:#C7C7CC}
+.alert-red{background:var(--red-soft);color:var(--red);border-radius:12px;padding:12px 16px;margin-bottom:14px;font-weight:500;display:flex;gap:8px;align-items:center}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.dbox{position:relative;text-align:start;background:var(--panel);border:none;border-radius:var(--radius);padding:14px 14px 12px;cursor:pointer;display:flex;flex-direction:column;gap:2px;transition:transform .12s;box-shadow:var(--shadow);overflow:hidden}
+.dbox::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:5px;background:#C7C7CC}
+.dbox:active{transform:scale(.97)}
+.dbox .dn{color:var(--muted);font-size:12.5px}
+.dbox>b{font-size:16px;font-weight:600}
+.dbox .dc{font-size:13px;color:var(--muted);margin-top:4px}.dbox .dc b{font-size:26px;color:var(--ink);margin-inline-end:4px;font-weight:700}
+.dbox .ds{font-size:12.5px;font-weight:600}
+.dbox .df{position:absolute;top:12px;inset-inline-end:12px;display:flex;gap:4px}
+.dbox .df i{width:8px;height:8px;border-radius:50%;background:var(--red-sys)}
+.dbox .df i.oc{background:var(--yellow-sys)}
+.dbox.red::before{background:var(--red-sys)}.dbox.red .ds{color:var(--red)}
+.dbox.amber::before{background:var(--amber-sys)}.dbox.amber .ds{color:var(--amber)}
+.dbox.blue::before{background:var(--blue-sys)}.dbox.blue .ds{color:var(--blue)}
+.dbox.gray{opacity:.75}.dbox.gray .ds{color:var(--muted)}
+.dhead{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.dhead .back{display:inline-flex;align-items:center;gap:4px;color:var(--brand);background:none;border:none;font-size:16px;font-weight:600;cursor:pointer;padding:6px 0}
+.dhead h2{margin:0;font-size:22px;font-weight:700}
+.pcards{display:grid;gap:10px}
+.pcard{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:10px 16px;align-items:center;position:relative;overflow:hidden;transition:opacity .3s}
+.pcard::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:4px;background:var(--blue-sys)}
+.pcard.red::before{background:var(--red-sys)}.pcard.amber::before{background:var(--amber-sys)}.pcard.gray::before{background:#C7C7CC}
+.pcard .pn{font-size:16px;font-weight:600}
+.pcard .pm{color:var(--muted);font-size:13px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:2px}
+.pcard .pb{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.pcard .act{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.pcard .act .btn{min-width:110px;min-height:40px}
+.pcard.done{opacity:.55}
+.pcard .inl{grid-column:1/-1}
+.inl{display:flex;flex-direction:column;gap:8px;background:var(--panel-2);border-radius:12px;padding:12px}
+.inl input[type=text]{width:100%}
+.t tr.r-red td:first-child{box-shadow:inset -4px 0 0 var(--red-sys)}
+
+/* ---------- البحث في تجربة المريض */
+.sres{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+.sres .stage{display:flex;align-items:center;gap:8px;border-radius:10px;padding:10px 12px;margin:10px 0;font-weight:600;font-size:14.5px}
+.stage.red{background:var(--red-soft);color:var(--red)}.stage.amber{background:var(--amber-soft);color:var(--amber)}
+.stage.green{background:var(--green-soft);color:var(--green)}.stage.blue{background:var(--blue-soft);color:var(--blue)}.stage.gray{background:var(--gray-soft);color:var(--muted)}
+.bigsearch{display:flex;gap:8px;margin-bottom:16px}
+.bigsearch input{flex:1;min-height:46px;font-size:17px;border-radius:12px}
+
+/* ---------- جوال: شريط سفلي + بطاقات بدل الجداول */
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;inset-block:0;inset-inline-start:-300px;width:285px;z-index:70;transition:inset-inline-start .25s;background:rgba(246,246,248,.97)}
+  .side.open{inset-inline-start:0;box-shadow:var(--shadow-lg)}
+  .main{padding:16px 16px 100px}
+  .topbar h1{font-size:28px}
+  .g2,.g3{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .kv{grid-template-columns:120px 1fr}
+  .filters input[type=search]{width:100%}
+  .filters select,.filters input[type=date]{flex:1 1 140px}
+  .decisions{grid-template-columns:1fr}
+  .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:65;background:rgba(249,249,251,.92);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+    border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;color:var(--muted-2);text-decoration:none;position:relative;padding:2px 0;font-weight:500}
+  .tabbar a svg{width:24px;height:24px}
+  .tabbar a.on{color:var(--brand)}
+  .tabbar a .cnt{position:absolute;top:-2px;left:50%;margin-left:4px;background:var(--red-sys);color:#fff;border-radius:10px;font-size:10px;padding:0 5px;font-weight:700;min-width:16px;text-align:center}
+  .overlay{padding:0;align-items:flex-end}
+  .modal,.modal.wide{width:100%;border-radius:16px 16px 0 0;max-height:94vh;overflow:auto}
+  .modal .mf{border-radius:0;position:sticky;bottom:0;padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+  .modal .mf .btn{flex:1;min-height:46px}
+  .drawer{width:100%}
+  .pcard{grid-template-columns:1fr}
+  .pcard .act{justify-content:stretch}
+  .pcard .act .btn{flex:1;min-width:0}
+  .dgrid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .toast{bottom:96px}
+  /* الجداول تتحول إلى بطاقات */
+  table.t.cardify{background:none;box-shadow:none;border-radius:0}
+  .t.cardify thead{display:none}
+  .t.cardify tbody tr{display:block;background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:10px;padding:6px 0}
+  .t.cardify td{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line2);padding:8px 14px;text-align:end}
+  .t.cardify td:last-child{border-bottom:none}
+  .t.cardify td::before{content:attr(data-label);color:var(--muted);font-size:12.5px;text-align:start;flex:none;max-width:45%}
+  .t.cardify td[data-label=""]::before{display:none}
+  .t.cardify tr.r-red{box-shadow:inset -4px 0 0 var(--red-sys),var(--shadow)}
+  .t.cardify tr.r-red td:first-child{box-shadow:none}
+}
+@media print{.side,.tabbar,.topbar .actions,.filters{display:none}.app{display:block}}
+
+/* ==========================================================================
+   بوابة المريض
+   ========================================================================== */
+body.portal{background:var(--bg)}
+.pw{max-width:560px;margin:0 auto;padding:0 16px calc(40px + env(safe-area-inset-bottom))}
+.p-head{display:flex;align-items:center;gap:12px;padding:16px 0 8px;position:sticky;top:0;background:rgba(242,242,247,.85);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);z-index:5}
+.p-logo{width:44px;height:44px;border-radius:12px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:700;font-size:20px;overflow:hidden;flex:none}
+.p-logo img{width:100%;height:100%;object-fit:contain;background:#fff}
+.p-head b{display:block;font-size:16px}.p-head small{color:var(--muted);font-size:13px}
+.p-out{margin-inline-start:auto;border:none;background:var(--fill);color:var(--brand);border-radius:20px;padding:6px 14px;font-weight:600;cursor:pointer}
+.p-hero{padding:18px 4px 14px}
+.p-hero h1{margin:0;font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+.p-hero p{margin:6px 0 0;color:var(--muted);font-size:15px}
+.p-hero .p-ic.lg{width:56px;height:56px;border-radius:15px;margin-bottom:12px}
+.p-hero .p-ic.lg svg{width:30px;height:30px}
+.p-card{background:var(--panel);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
+.p-empty{text-align:center;color:var(--muted)}
+.p-field{display:block;padding:10px 16px;border-bottom:1px solid var(--line2)}
+.p-card .p-field{padding:0 0 14px;border:none}
+.p-field>span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px;font-weight:500}
+.p-field input,.p-field textarea{width:100%;border:none;background:none;padding:4px 0;font-size:17px;min-height:30px;box-shadow:none!important;border-radius:0}
+.p-card .p-field input{border:1px solid var(--line);border-radius:12px;padding:10px 14px;min-height:50px;background:var(--panel)}
+.p-field input:focus,.p-field textarea:focus{outline:none}
+.p-card .p-field input:focus{border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 22%,transparent)!important}
+.p-field input[readonly]{color:var(--muted)}
+.p-field em{display:block;font-style:normal;color:var(--muted-2);font-size:12.5px;margin-top:2px}
+.p-group{background:var(--panel);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:14px}
+.p-group .p-field:last-child{border-bottom:none}
+.p-hint{color:var(--muted);font-size:13px;margin:-6px 6px 14px}
+.p-note{display:flex;gap:6px;align-items:flex-start;color:var(--muted);font-size:13px;margin:14px 0 0}
+.p-note svg{width:16px;height:16px;flex:none;margin-top:2px}
+.p-list{background:var(--panel);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:18px}
+.p-item,.p-photo{display:flex;align-items:center;gap:14px;width:100%;border:none;background:none;text-align:start;padding:16px;cursor:pointer;border-bottom:1px solid var(--line2)}
+.p-item:last-child{border-bottom:none}
+.p-item:active,.p-photo:active{background:var(--fill)}
+.p-ic{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;flex:none}
+.p-ic svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.p-tx{flex:1;min-width:0}
+.p-tx b{display:block;font-size:17px;font-weight:600}
+.p-tx small{color:var(--muted);font-size:13.5px}
+.p-chev{color:#C7C7CC;font-size:24px;font-weight:300}
+.p-sec{font-size:13px;color:var(--muted);font-weight:600;margin:8px 16px 8px}
+.p-req{padding:14px 16px;border-bottom:1px solid var(--line2)}
+.p-req:last-child{border-bottom:none}
+.p-req small{color:var(--muted)}
+.p-need{background:var(--amber-soft);color:var(--amber);border-radius:10px;padding:8px 12px;margin-top:8px;font-size:14px;font-weight:500}
+.p-badge{border-radius:20px;padding:2px 10px;font-size:12.5px;font-weight:600;background:var(--fill);color:var(--muted)}
+.p-red{background:var(--blue-soft);color:var(--blue)}.p-blue{background:var(--blue-soft);color:var(--blue)}.p-amber{background:var(--amber-soft);color:var(--amber)}
+.p-green{background:var(--green-soft);color:var(--green)}.p-gray{background:var(--fill);color:var(--muted)}
+.p-back{border:none;background:none;color:var(--brand);font-size:17px;font-weight:500;padding:8px 0;cursor:pointer}
+.p-seg{display:flex;background:var(--fill);border-radius:10px;padding:2px;margin-bottom:14px}
+.p-seg button{flex:1;border:none;background:none;padding:9px;border-radius:8px;font-weight:500;cursor:pointer;font-size:15px}
+.p-seg button.on{background:var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.12);font-weight:600}
+.pw .err{margin:0 4px 12px;font-weight:500}
+.p-done{text-align:center;padding:40px 8px}
+.p-ok{width:84px;height:84px;border-radius:50%;background:var(--green-sys);display:grid;place-items:center;margin:0 auto 16px}
+.p-ok svg{width:44px;height:44px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.p-done h1{margin:0 0 6px;font-size:26px}
+.p-done>b{display:block;font-size:28px;color:var(--brand);margin:4px 0 14px}
+.p-done p{color:var(--muted)}
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+/* نظام طلبات العلاج والتوصيل — واجهة الموظفين */
+'use strict';
+
+// ============================================================ أدوات
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+function el(html) { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; }
+const S = { me: null, settings: {}, users: [], route: '', counts: {} };
+const PORTAL_URL = typeof LOCAL !== 'undefined' ? 'portal.html' : '/portal';
+
+const fmtTime = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleString('ar-SA-u-ca-gregory-nu-latn', { timeZone: 'Asia/Riyadh', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+};
+const fmtDate = (s) => s ? `<span class="num">${esc(s)}</span>` : '<span class="hint">—</span>';
+const todayStr = () => S.settings.today || new Date().toISOString().slice(0, 10);
+const addDays = (s, n) => { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+
+function toast(msg, bad) {
+  const t = el(`<div class="toast ${bad ? 'bad' : ''}">${esc(msg)}</div>`);
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), bad ? 5000 : 2800);
+}
+
+async function api(method, url, body, opts = {}) {
+  const init = { method, headers: {}, credentials: 'same-origin' };
+  if (body instanceof FormData) init.body = body;
+  else if (body !== undefined) { init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(body); }
+  const r = await fetch(url, init);
+  if (opts.blob) {
+    if (!r.ok) { let m = 'تعذر التنزيل'; try { m = (await r.json()).error || m; } catch (e) {} throw new Error(m); }
+    return r;
+  }
+  let data = null;
+  try { data = await r.json(); } catch (e) { data = null; }
+  if (!r.ok) {
+    if (r.status === 401 && !url.includes('/login')) { renderLogin(); throw new Error(data?.error || 'يجب تسجيل الدخول'); }
+    if (r.status === 403 && data?.must_change_pw) { renderChangePw(true); throw new Error(data.error); }
+    const err = new Error(data?.error || 'حدث خطأ غير متوقع');
+    err.data = data; err.status = r.status;
+    throw err;
+  }
+  return data;
+}
+const GET = (u) => api('GET', u);
+const POST = (u, b) => api('POST', u, b ?? {});
+const PATCH = (u, b) => api('PATCH', u, b);
+const PUT = (u, b) => api('PUT', u, b);
+
+async function guard(fn) { try { return await fn(); } catch (e) { toast(e.message, true); throw e; } }
+
+async function download(method, url, body) {
+  const r = await api(method, url, body, { blob: true });
+  const cd = r.headers.get('Content-Disposition') || '';
+  let name = 'file.xlsx';
+  const m1 = cd.match(/filename\*=UTF-8''([^;]+)/i); const m2 = cd.match(/filename="?([^";]+)"?/i);
+  if (m1) name = decodeURIComponent(m1[1]); else if (m2) name = m2[1];
+  const blob = await r.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  return r;
+}
+
+function copyText(text, label) {
+  const done = () => toast(label ? `تم نسخ ${label}` : 'تم النسخ');
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+  } else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch (e) { toast('تعذر النسخ', true); }
+  ta.remove();
+}
+const copyBtn = (text, label) => `<button class="icon-btn" title="نسخ" data-copy="${esc(text ?? '')}" data-label="${esc(label || '')}">⧉</button>`;
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-copy]');
+  if (b) { e.stopPropagation(); copyText(b.dataset.copy, b.dataset.label); }
+});
+
+function patientText(p) {
+  return [`رقم الملف: ${p.mrn}`, `الاسم: ${p.name || ''}`, `الجوال: ${p.phone || ''}`,
+    p.phone2 ? `جوال إضافي: ${p.phone2}` : '', `العيادة: ${p.clinic || ''}`, `المدينة: ${p.city || ''}`, p.district ? `الحي: ${p.district}` : '',
+    `العنوان الوطني: ${p.address || ''}`, p.review_date ? `تاريخ المراجعة: ${p.review_date}` : ''].filter(Boolean).join('\n');
+}
+function rowsTSV(list) {
+  const head = ['رقم الملف', 'الاسم', 'الجوال', 'جوال إضافي', 'العيادة', 'المدينة', 'الحي', 'العنوان الوطني', 'تاريخ المراجعة', 'الحالة', 'الموظف'];
+  const lines = list.map((p) => [p.mrn, p.name, p.phone, p.phone2, p.clinic, p.city, p.district, p.address, p.review_date, p.status_label, p.assigned_name]
+    .map((v) => String(v ?? '').replace(/\t|\n/g, ' ')).join('\t'));
+  return [head.join('\t'), ...lines].join('\n');
+}
+
+function modal(title, body, { wide = false, footer = '' } = {}) {
+  const o = el(`<div class="overlay"><div class="modal ${wide ? 'wide' : ''}" role="dialog">
+    <div class="mh"><h2>${title}</h2><button class="x" aria-label="إغلاق">×</button></div>
+    <div class="mb"></div>${footer ? `<div class="mf">${footer}</div>` : ''}</div></div>`);
+  const mb = $('.mb', o);
+  if (typeof body === 'string') mb.innerHTML = body; else mb.appendChild(body);
+  const close = () => { o.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  $('.x', o).onclick = close;
+  o.addEventListener('mousedown', (e) => { if (e.target === o) close(); });
+  document.body.appendChild(o);
+  o.close = close;
+  return o;
+}
+function confirmBox(msg, okLabel = 'تأكيد', danger = false) {
+  return new Promise((res) => {
+    const m = modal('تأكيد', `<p style="margin:0">${msg}</p>`, { footer: `<button class="btn ${danger ? 'danger' : 'primary'}" data-ok>${okLabel}</button><button class="btn" data-no>إلغاء</button>` });
+    $('[data-ok]', m).onclick = () => { m.close(); res(true); };
+    $('[data-no]', m).onclick = () => { m.close(); res(false); };
+  });
+}
+function showPassword(title, username, pw) {
+  const m = modal(title, `<div class="pw-box">اسم المستخدم: <b class="mono">${esc(username)}</b><br>كلمة المرور المؤقتة
+    <span class="mono">${esc(pw)}</span><button class="btn sm" data-copy="${esc(`اسم المستخدم: ${username}\nكلمة المرور المؤقتة: ${pw}`)}" data-label="بيانات الدخول">نسخ بيانات الدخول</button></div>
+    <p class="hint">لن تظهر كلمة المرور مرة أخرى. سيُطلب من الموظف تغييرها عند أول دخول.</p>`);
+  return m;
+}
+
+const STATUS_BADGE = { pending: 'b-blue', eligible: 'b-green', exported: 'b-brand', not_eligible: 'b-red', no_rx: 'b-purple', wrong_data: 'b-amber' };
+const statusBadge = (p) => `<span class="badge ${STATUS_BADGE[p.status] || ''}">${esc(p.status_label)}</span>`;
+function dueBadge(p) {
+  if (p.days_left == null) return '';
+  if (p.overdue) return `<span class="badge b-red">متأخر ${Math.abs(p.days_left)} يوم</span>`;
+  if (p.days_left === 0) return '<span class="badge b-amber">اليوم</span>';
+  if (p.in_queue) return `<span class="badge b-blue">بعد ${p.days_left} يوم</span>`;
+  return '';
+}
+const periodicBadge = (p) => p.periodic === 0 ? '<span class="badge b-red" title="المريض لا يرغب باستلام الشحنات بشكل دوري">لا يرغب بالشحن الدوري</span>' : '';
+const PX_BADGE = { new: 'b-red', contacting: 'b-amber', awaiting: 'b-blue', done: 'b-green', unreachable: '' };
+const REQ_BADGE = { new: 'b-red', in_progress: 'b-blue', needs_info: 'b-amber', done: 'b-green', rejected: '' };
+const COLOR_HEX = { red: '#e74c3c', orange: '#f39c12', yellow: '#f1c40f', green: '#27ae60', blue: '#3498db', purple: '#8e44ad', none: '#ffffff' };
+
+const userOptions = (sel, filter = (u) => u.role === 'employee' && u.active) =>
+  S.users.filter(filter).map((u) => `<option value="${u.id}" ${String(sel) === String(u.id) ? 'selected' : ''}>${esc(u.name)}</option>`).join('');
+
+// ============================================================ أيقونات (بنمط SF Symbols)
+const IC = {
+  home: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  review: '<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/>',
+  people: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9" r="2.5"/><path d="M16 14.5a5 5 0 0 1 5.5 5"/>',
+  box: '<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+  inbox: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',
+  heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>',
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>',
+  shuffle: '<path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>',
+  upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+  alert: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  truck: '<path d="M1 4h13v12H1zM14 9h4l4 4v3h-8"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="17.5" cy="18.5" r="2"/>',
+  pill: '<path d="M10.5 20.5a5 5 0 0 1-7-7l10-10a5 5 0 0 1 7 7z"/><path d="M8.5 8.5l7 7"/>',
+  chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/>',
+  menu: '<path d="M3 6h18M3 12h18M3 18h18"/>',
+};
+const ic = (n, cls = 'i') => `<svg class="${cls}" viewBox="0 0 24 24">${IC[n] || ''}</svg>`;
+
+function applyBrand(st) {
+  if (st && /^#[0-9a-f]{6}$/i.test(st.brand_color || '')) document.documentElement.style.setProperty('--brand', st.brand_color);
+}
+const logoHtml = (st, txt = '℞') => st && st.logo ? `<img src="${esc(st.logo)}" alt="">` : txt;
+
+// جداول ← بطاقات على الجوال
+function cardify(root = document) {
+  $$('table.t:not(.cardify)', root).forEach((t) => {
+    const heads = $$('thead th', t).map((th) => th.textContent.trim());
+    $$('tbody tr', t).forEach((tr) => [...tr.children].forEach((td, i) => td.setAttribute('data-label', heads[i] || '')));
+    t.classList.add('cardify');
+  });
+}
+new MutationObserver(() => { clearTimeout(cardify._t); cardify._t = setTimeout(() => cardify(), 30); }).observe(document.documentElement, { childList: true, subtree: true });
+
+// ============================================================ الدخول
+async function renderLogin() {
+  S.me = null;
+  let info = {};
+  try { info = await api('GET', '/api/public-info'); } catch (e) {}
+  applyBrand(info);
+  $('#root').innerHTML = `<div class="login-wrap">
+    <div class="login-brand"><div class="logo">${logoHtml(info)}</div><h1>${esc(info.org_name || '')}</h1><p>${esc(info.org_sub || '')}</p></div>
+    <a class="portal-cta" href="${PORTAL_URL}">${ic('heart')}<div><b>بوابة المريض</b><span>طلب توصيل علاج · علاج ناقص · تواصل وشكوى</span></div><span class="chev">‹</span></a>
+    <form class="login" autocomplete="on">
+    <h1>دخول الموظفين</h1><p>للموظفين المصرّح لهم فقط</p>
+    <label class="f"><span>اسم المستخدم</span><input type="text" name="u" autocomplete="username" required dir="ltr"></label>
+    <label class="f"><span>كلمة المرور</span><input type="password" name="p" autocomplete="current-password" required dir="ltr"></label>
+    <div class="err" id="lerr"></div>
+    <button class="btn primary" type="submit">دخول</button></form></div>`;
+  const f = $('form');
+  if (info.first_password) {
+    f.insertAdjacentHTML('afterbegin', `<div class="note-patient" style="margin-bottom:14px">أول تشغيل — بيانات دخول المدير:<br>اسم المستخدم: <b class="mono">admin</b><br>كلمة المرور المؤقتة: <b class="mono">${esc(info.first_password)}</b><br><small>سيُطلب منك تغييرها بعد الدخول.</small></div>`);
+    f.u.value = 'admin'; f.p.value = info.first_password;
+  }
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const r = await api('POST', '/api/login', { username: f.u.value, password: f.p.value });
+      if (r.must_change_pw) return renderChangePw(true);
+      boot();
+    } catch (err) { $('#lerr').textContent = err.message; }
+  };
+}
+
+function renderChangePw(forced) {
+  const html = `<form class="${forced ? 'login' : ''}">
+    ${forced ? '<h1>تعيين كلمة مرور جديدة</h1><p>يجب تعيين كلمة مرور خاصة بك قبل المتابعة.</p>' : ''}
+    <label class="f"><span>كلمة المرور الحالية / المؤقتة</span><input type="password" name="o" required dir="ltr"></label>
+    <label class="f"><span>كلمة المرور الجديدة (8 أحرف على الأقل، حروف وأرقام)</span><input type="password" name="n" required dir="ltr" minlength="8"></label>
+    <label class="f"><span>تأكيد كلمة المرور</span><input type="password" name="c" required dir="ltr"></label>
+    <div class="err" id="perr"></div><button class="btn primary" type="submit" style="width:100%">حفظ</button></form>`;
+  let m;
+  if (forced) $('#root').innerHTML = `<div class="login-wrap">${html}</div>`;
+  else m = modal('تغيير كلمة المرور', html);
+  const f = $('form', forced ? document : m);
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    if (f.n.value !== f.c.value) return ($('#perr').textContent = 'كلمتا المرور غير متطابقتين');
+    try {
+      await POST('/api/change-password', { old_password: f.o.value, new_password: f.n.value });
+      toast('تم تغيير كلمة المرور');
+      if (forced) boot(); else m.close();
+    } catch (err) { $('#perr').textContent = err.message; }
+  };
+}
+
+// ============================================================ الهيكل
+const NAV = [
+  { r: 'dashboard', t: 'الرئيسية', i: 'home', roles: ['admin', 'employee'], tab: 1 },
+  { r: 'review', t: 'مراجعة الصيدلي', s: 'المراجعة', i: 'review', roles: ['admin', 'employee'], review: true, cnt: 'due', alert: 'overdue', tab: 2 },
+  { r: 'safety', t: 'سلامة الصرف', s: 'السلامة', i: 'shield', roles: ['admin', 'employee'], cnt: 'issues', alert: 'issues', tab: 3 },
+  { r: 'eligible', t: 'المستحقون والتصدير', s: 'التصدير', i: 'box', roles: ['admin', 'employee'], cnt: 'eligible' },
+  { r: 'patients', t: 'المرضى', i: 'people', roles: ['admin', 'employee'] },
+  { r: 'requests', t: 'طلبات المرضى', s: 'الطلبات', i: 'inbox', roles: ['admin', 'employee'], cnt: 'req', tab: 4 },
+  { r: 'px', t: 'تجربة المريض', i: 'heart', roles: ['admin', 'px', 'employee'], cnt: 'px', tab: 1 },
+  { r: 'complaints', t: 'التواصل والشكاوى', s: 'الشكاوى', i: 'chat', roles: ['admin', 'px'], cnt: 'complaints', tab: 2 },
+  { r: 'search', t: 'البحث عن مريض', s: 'بحث', i: 'search', roles: ['admin', 'px', 'employee'], tab: 3 },
+  { sec: 'الإدارة', roles: ['admin'] },
+  { r: 'distribute', t: 'توزيع المرضى', i: 'shuffle', roles: ['admin'], cnt: 'unassigned' },
+  { r: 'import', t: 'استيراد Excel', i: 'upload', roles: ['admin'] },
+  { r: 'users', t: 'المستخدمون', i: 'user', roles: ['admin'] },
+  { r: 'audit', t: 'سجل الإجراءات', i: 'clock', roles: ['admin'] },
+  { r: 'settings', t: 'الإعدادات', i: 'gear', roles: ['admin'] },
+];
+const navAllowed = (n) => n.roles.includes(S.me.role) && (!n.review || S.me.role === 'admin' || S.me.can_review);
+
+function shell() {
+  const u = S.me;
+  applyBrand(S.settings);
+  $('#root').innerHTML = `<div class="app"><aside class="side" id="side">
+    <div class="brand"><div class="logo">${logoHtml(S.settings)}</div><div><b>${esc(S.settings.org_name || '')}</b><small>${esc(S.settings.org_sub || '')}</small></div></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="me"><b>${esc(u.name)}</b>${esc(u.role_label)}${u.can_review && u.role !== 'admin' ? ' · صيدلي' : ''}
+      ${typeof LOCAL !== 'undefined' ? '<div class="hint" style="margin-top:4px">نسخة تجريبية — البيانات محفوظة في هذا المتصفح فقط</div>' : ''}
+      <div class="row"><button class="btn sm" id="chpw">كلمة المرور</button><button class="btn sm danger" id="logout">خروج</button></div></div></aside>
+    <main class="main" id="main"></main><nav class="tabbar" id="tabbar"></nav></div>`;
+  $('#logout').onclick = async () => { await POST('/api/logout'); renderLogin(); };
+  $('#chpw').onclick = () => renderChangePw(false);
+  renderNav();
+}
+function renderNav() {
+  const c = S.counts;
+  const cnt = (n) => n.cnt && c[n.cnt] ? `<span class="cnt ${n.alert && c[n.alert] ? 'alert' : ''}">${c[n.cnt]}</span>` : '';
+  const items = NAV.filter(navAllowed);
+  $('#nav').innerHTML = items.map((n) => n.sec ? `<div class="sec">${n.sec}</div>` :
+    `<a href="#/${n.r}" data-r="${n.r}">${ic(n.i)} ${n.t}${cnt(n)}</a>`).join('');
+  $$('#nav a').forEach((a) => a.classList.toggle('on', a.dataset.r === S.route));
+  const TABS = S.me.role === 'px' ? ['px', 'complaints', 'search'] : ['dashboard', 'review', 'eligible', 'requests'];
+  const tabs = TABS.map((r) => items.find((n) => n.r === r)).filter(Boolean);
+  const tb = $('#tabbar');
+  if (tb) {
+    tb.innerHTML = tabs.map((n) => `<a href="#/${n.r}" class="${n.r === S.route ? 'on' : ''}">${ic(n.i)}${n.cnt && c[n.cnt] ? `<span class="cnt">${c[n.cnt]}</span>` : ''}<span>${n.s || n.t}</span></a>`).join('')
+      + `<a href="#" id="tbMore" class="${tabs.some((n) => n.r === S.route) ? '' : 'on'}">${ic('more')}<span>المزيد</span></a>`;
+    $('#tbMore').onclick = (e) => { e.preventDefault(); $('#side').classList.toggle('open'); };
+  }
+}
+async function refreshCounts() {
+  try {
+    const d = await GET('/api/dashboard');
+    const t = d.totals || {};
+    S.counts = {
+      due: t.due, overdue: t.overdue, eligible: t.eligible, unassigned: t.unassigned,
+      req: d.requests ? d.requests.new : 0, px: d.px ? d.px.new + d.px.contacting + d.px.awaiting : 0,
+      issues: d.safety ? d.safety.issues : 0, complaints: d.complaints || 0,
+    };
+    renderNav();
+    return d;
+  } catch (e) { return null; }
+}
+
+function page(title, sub = '', actions = '') {
+  const m = $('#main');
+  m.innerHTML = `<div class="topbar"><div><h1>${title}</h1>${sub ? `<div class="sub">${sub}</div>` : ''}</div><div class="actions">${actions}</div></div><div id="pg"></div>`;
+  window.scrollTo(0, 0);
+  return $('#pg');
+}
+
+const VIEWS = {};
+async function route() {
+  const [r, qs] = (location.hash.replace(/^#\//, '') || '').split('?');
+  const def = S.me.role === 'px' ? 'px' : 'dashboard';
+  const name = VIEWS[r] && NAV.find((n) => n.r === r && navAllowed(n)) ? r : def;
+  S.route = name;
+  S.query = new URLSearchParams(qs || '');
+  $('#side')?.classList.remove('open');
+  $$('.drawer,.overlay').forEach((x) => x.remove());
+  renderNav();
+  try { await VIEWS[name](S.query); } catch (e) { console.error(e); }
+}
+window.addEventListener('hashchange', () => S.me && route());
+
+async function boot() {
+  try {
+    const me = await api('GET', '/api/me');
+    S.me = me.user; S.settings = me.settings;
+    if (S.me.must_change_pw) return renderChangePw(true);
+    S.users = await GET('/api/users');
+    shell();
+    await refreshCounts();
+    route();
+  } catch (e) { if (!S.me) renderLogin(); }
+}
+
+// ============================================================ لوحة التحكم
+function safetyBanner(sf) {
+  if (!sf) return '';
+  const msg = sf.level === 'ok' ? { b: 'لا يوجد مريض متأخر أو بلا متابعة', s: 'كل المرضى لديهم مسار واضح ومواعيدهم مغطاة' }
+    : { b: `${sf.issues} حالة تحتاج إجراء لضمان عدم تأخير الصرف`, s: sf.top.map((x) => `${x.title}: ${x.count}`).join(' · ') };
+  return `<div class="safety ${sf.level}" data-href="#/safety"><div class="ic">${ic(sf.level === 'ok' ? 'check' : 'alert')}</div><div><b>${msg.b}</b><span>${esc(msg.s)}</span></div><span class="spacer"></span><span class="hint">عرض ‹</span></div>`;
+}
+VIEWS.dashboard = async () => {
+  const pg = page('الرئيسية', `اليوم <span class="num">${todayStr()}</span> · يظهر المريض للصيدلي قبل موعده بـ ${S.settings.lead_days} أيام`);
+  const d = await refreshCounts();
+  if (!d) return;
+  const t = d.totals;
+  const k = (v, l, href, cls = '') => `<div class="kpi ${cls}" data-href="${href}"><div class="v">${v ?? 0}</div><div class="l">${l}</div></div>`;
+  let html = safetyBanner(d.safety) + `<div class="kpis">
+    ${k(t.due, 'بانتظار مراجعة الصيدلي', '#/review')}
+    ${k(t.overdue, 'متأخرة عن موعدها', '#/review', t.overdue ? 'warn' : '')}
+    ${k(t.eligible, 'مستحقون بانتظار التصدير', '#/eligible', 'ok')}
+    ${k(t.at_px, 'لدى تجربة المريض', '#/px', 'amber')}
+    ${k(d.requests?.new, 'طلبات مرضى جديدة', '#/requests')}
+    ${S.me.role === 'admin' ? k(t.unassigned, 'مرضى غير مسندين', '#/distribute', t.unassigned ? 'warn' : '') : ''}
+    ${k(t.reviewed_today, 'مراجعات اليوم', '#/patients')}
+  </div>`;
+  if (S.me.role === 'admin') {
+    const max = Math.max(1, ...d.employees.map((e) => e.patients));
+    html += `<div class="section-title">متابعة عمل الموظفين</div>
+      <div class="tw" style="margin-bottom:18px"><table class="t"><thead><tr><th>الموظف</th><th>المسند</th><th>بانتظار المراجعة</th><th>متأخر</th><th>مستحق للتصدير</th><th>لدى تجربة المريض</th><th>طلبات مفتوحة</th><th>المنجز اليوم</th><th>المنجز 7 أيام</th></tr></thead><tbody>
+      ${d.employees.map((e) => `<tr class="click" data-href="#/patients?assigned=${e.id}"><td><b>${esc(e.name)}</b> ${e.can_review ? '<span class="badge b-brand">صيدلي</span>' : ''} ${e.active ? '' : '<span class="badge">معطّل</span>'}</td>
+        <td><div class="row"><span class="num">${e.patients}</span><div class="bar" style="width:70px"><i style="width:${(e.patients / max) * 100}%"></i></div></div></td>
+        <td class="num">${e.due}</td><td>${e.overdue ? `<span class="badge b-red num">${e.overdue}</span>` : '0'}</td><td class="num">${e.eligible}</td>
+        <td class="num">${e.at_px}</td><td class="num">${e.open_requests}</td><td class="num">${e.reviewed_today}</td><td class="num">${e.reviewed_week + e.requests_done_week}</td></tr>`).join('') || '<tr><td colspan="9" class="empty">لا يوجد موظفون بعد — أنشئهم من صفحة المستخدمين</td></tr>'}
+      </tbody></table></div>`;
+  }
+  html += `<div class="grid g2"><div><div class="section-title">تجربة المريض</div><div class="kpis" style="margin:0">
+      ${k(d.px.new, 'جديد', '#/px?status=new', d.px.new ? 'warn' : '')}${k(d.px.contacting, 'جارٍ التواصل', '#/px?status=contacting')}
+      ${k(d.px.awaiting, 'بانتظار رد المريض', '#/px?status=awaiting')}${k(d.px.done_week, 'منجز آخر 7 أيام', '#/px?status=done', 'ok')}</div></div>
+    <div><div class="section-title">طلبات المرضى المفتوحة</div><div class="kpis" style="margin:0">
+      ${k(d.requests.delivery, 'طلب توصيل علاج', '#/requests?type=delivery')}${k(d.requests.shortage, 'علاج ناقص / لم يصل', '#/requests?type=shortage')}
+      ${k(d.requests.needs_info, 'يحتاج استكمال', '#/requests?status=needs_info', 'amber')}
+      ${d.requests.unlinked != null ? k(d.requests.unlinked, 'غير مرتبطة/غير مسندة', '#/requests?assigned=none', d.requests.unlinked ? 'warn' : '') : ''}</div></div></div>`;
+  pg.innerHTML = html;
+  $$('[data-href]', pg).forEach((x) => x.onclick = () => { location.hash = x.dataset.href; });
+};
+
+// ============================================================ سلامة الصرف
+VIEWS.safety = async () => {
+  const admin = S.me.role === 'admin';
+  const pg = page('سلامة الصرف', admin ? 'رقابة مستمرة تضمن ألا يتأخر صرف أي مريض وألا يُتجاوز أي مريض دون مراجعة' : 'الحالات المسندة إليك التي تحتاج إجراء');
+  const m = await GET('/api/monitor');
+  refreshCounts();
+  const g = m.guarantee;
+  const LV = { critical: 'حرج', high: 'مهم', info: 'للعلم' };
+  pg.innerHTML = `${safetyBanner({ level: m.level, issues: m.issues, top: m.categories.filter((c) => c.count && c.level !== 'info').slice(0, 3) })}
+    <div class="card" style="margin-bottom:16px"><div class="row"><div><b style="font-size:17px">ضمان المتابعة</b><div class="hint">كل مريض يجب أن يكون في واحدة من: قائمة مراجعة لها موعد، أو إحالة مفتوحة لتجربة المريض، أو قائمة التصدير.</div></div><span class="spacer"></span>
+      <div style="text-align:center"><div class="num" style="font-size:26px;font-weight:700;color:${g.with_path === g.total ? 'var(--green)' : 'var(--red)'}">${g.with_path} / ${g.total}</div><div class="hint">لديهم مسار متابعة</div></div></div>
+      <p class="hint" style="margin:10px 0 0">قواعد يطبقها النظام تلقائيًا: يبقى المتأخر في قائمة الصيدلي حتى يُسجَّل قرار · المستحق يأخذ موعد صرف قادم تلقائيًا (+${S.settings.refill_default || 30} يومًا) · غير المستحق يعود قبل موعده بـ ${S.settings.lead_days} أيام · من تعذر التواصل معه يعود للصيدلي بعد 7 أيام · لا يُعتمد أي مريض مستحقًا دون قرار صيدلي.</p></div>
+    <div class="mon">${m.categories.map((c, i) => `<div class="mon-item ${c.count ? c.level : 'zero'}"><div class="mon-head" data-i="${i}"><div class="n">${c.count}</div><div><b>${esc(c.title)}</b><small>${esc(c.hint)}</small></div><span class="spacer"></span>
+      ${c.count ? `<span class="badge ${c.level === 'critical' ? 'b-red' : c.level === 'high' ? 'b-amber' : 'b-blue'}">${LV[c.level]}</span>` : '<span class="badge b-green">سليم</span>'}</div><div class="mon-body" hidden></div></div>`).join('')}</div>
+    <p class="hint" style="margin-top:12px">آخر فحص: ${fmtTime(m.checked_at)}</p>`;
+  $$('.mon-head', pg).forEach((h) => h.onclick = () => {
+    const c = m.categories[+h.dataset.i], body = h.nextElementSibling;
+    if (!c.count) return;
+    if (!body.hidden) { body.hidden = true; return; }
+    body.hidden = false;
+    const isReq = c.items[0] && c.items[0].req_id;
+    body.innerHTML = `${c.action === 'fix_orphans' && admin ? '<button class="btn primary sm" id="fixO" style="margin-bottom:10px">إعادتهم جميعًا لمراجعة الصيدلي اليوم</button>' : ''}
+      ${c.action === 'distribute' ? '<a class="btn primary sm" href="#/distribute" style="margin-bottom:10px">توزيعهم الآن</a>' : ''}
+      <div class="tw"><table class="t"><thead><tr><th>رقم الملف</th><th>الاسم</th>${isReq ? '<th>الطلب</th><th>النوع</th><th>التاريخ</th>' : '<th>الموعد</th><th>الحالة</th>'}<th>الموظف</th></tr></thead><tbody>
+      ${c.items.map((x) => `<tr class="click" data-p="${x.id || ''}" data-r="${x.req_id || ''}" data-c="${x.case_id || ''}"><td class="mono">${esc(x.mrn)}</td><td>${esc(x.name || '')}</td>
+        ${isReq ? `<td class="mono">${esc(x.ref)}</td><td>${esc(x.type)}</td><td>${fmtTime(x.created_at)}</td>` : `<td>${fmtDate(x.review_date)} ${x.days > 0 ? `<span class="badge b-red">متأخر ${x.days} يوم</span>` : ''}</td><td>${esc(x.px_status ? x.reason + ' · ' + x.px_status : x.status_label)}</td>`}
+        <td>${esc(x.assigned_name || '—')}</td></tr>`).join('')}</tbody></table></div>${c.count > c.items.length ? `<p class="hint">يعرض أول ${c.items.length} من ${c.count}</p>` : ''}`;
+    $$('tr[data-p],tr[data-r]', body).forEach((tr) => tr.onclick = () => {
+      if (tr.dataset.c && (admin || S.me.role === 'px')) return openCase(+tr.dataset.c, () => VIEWS.safety());
+      if (tr.dataset.r) return openRequest(+tr.dataset.r, () => VIEWS.safety());
+      openPatient(+tr.dataset.p, () => VIEWS.safety());
+    });
+    const fx = $('#fixO', body);
+    if (fx) fx.onclick = async () => {
+      if (!(await confirmBox(`إعادة ${c.count} مريض إلى قائمة مراجعة الصيدلي اليوم؟`, 'إعادة'))) return;
+      const r = await guard(() => POST('/api/monitor/fix-orphans'));
+      toast(`أعيد ${r.fixed} مريض للمراجعة`); VIEWS.safety();
+    };
+  });
+  $$('[data-href]', pg).forEach((x) => x.onclick = () => { location.hash = x.dataset.href; });
+};
+
+// ============================================================ المرضى
+VIEWS.patients = async (qs) => {
+  const admin = S.me.role === 'admin';
+  const pg = page('المرضى', admin ? 'جميع ملفات المرضى' : 'المرضى المسندون إليك',
+    `<button class="btn" id="copyAll">نسخ القائمة (Excel)</button><button class="btn primary" id="addP">+ إضافة مريض</button>`);
+  const f = Object.fromEntries(qs.entries());
+  pg.innerHTML = `<div class="filters" id="flt">
+    <input type="search" name="q" placeholder="بحث برقم الملف أو الاسم أو الجوال" value="${esc(f.q || '')}">
+    <select name="status"><option value="">كل الحالات</option>
+      ${Object.entries({ pending: 'بانتظار المراجعة', eligible: 'مستحق - بانتظار التصدير', exported: 'تم التصدير', not_eligible: 'غير مستحق حاليًا', no_rx: 'لا توجد وصفة فعّالة', wrong_data: 'بيانات خاطئة' }).map(([k, v]) => `<option value="${k}" ${f.status === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+    <select name="due"><option value="">كل المواعيد</option><option value="queue" ${f.due === 'queue' ? 'selected' : ''}>في قائمة المراجعة</option><option value="overdue" ${f.due === 'overdue' ? 'selected' : ''}>متأخر</option><option value="upcoming" ${f.due === 'upcoming' ? 'selected' : ''}>قادم خلال ${S.settings.lead_days} أيام</option><option value="nodate" ${f.due === 'nodate' ? 'selected' : ''}>بدون موعد قادم</option></select>
+    ${admin ? `<select name="assigned"><option value="">كل الموظفين</option><option value="none" ${f.assigned === 'none' ? 'selected' : ''}>غير مسند</option>${userOptions(f.assigned, (u) => u.role === 'employee')}</select>` : ''}
+    <select name="clinic"><option value="">كل العيادات</option></select>
+    <select name="out_of_city"><option value="">داخل وخارج المدينة</option><option value="0" ${f.out_of_city === '0' ? 'selected' : ''}>داخل المدينة</option><option value="1" ${f.out_of_city === '1' ? 'selected' : ''}>خارج المدينة</option></select>
+    <select name="periodic"><option value="">الشحن الدوري: الكل</option><option value="1" ${f.periodic === '1' ? 'selected' : ''}>يرغب بالشحن الدوري</option><option value="0" ${f.periodic === '0' ? 'selected' : ''}>لا يرغب</option></select>
+    <label class="check"><input type="checkbox" name="px" value="1" ${f.px === '1' ? 'checked' : ''}> لدى تجربة المريض</label>
+    <input type="date" name="from" value="${esc(f.from || '')}" title="من تاريخ"> <input type="date" name="to" value="${esc(f.to || '')}" title="إلى تاريخ">
+  </div><div id="bulk"></div><div id="list"></div>`;
+  let pageNo = 1, last = null;
+  const sel = new Set();
+  const params = () => {
+    const p = new URLSearchParams();
+    $$('#flt [name]').forEach((i) => {
+      if (i.type === 'checkbox') { if (i.checked) p.set(i.name, i.value); } else if (i.value) p.set(i.name, i.value);
+    });
+    return p;
+  };
+  const load = async () => {
+    const p = params(); p.set('page', pageNo);
+    last = await GET('/api/patients?' + p);
+    const cs = $('[name=clinic]', pg);
+    if (cs.options.length === 1) last.clinics.forEach((c) => cs.add(new Option(c, c, false, c === f.clinic)));
+    renderList();
+  };
+  const renderList = () => {
+    const items = last.items;
+    $('#list').innerHTML = items.length ? `<div class="tw"><table class="t"><thead><tr>${admin ? '<th><input type="checkbox" id="selAll"></th>' : ''}<th>رقم الملف</th><th>الاسم</th><th>الجوال</th><th>العيادة</th><th>تاريخ المراجعة</th><th>الحالة</th><th>المسؤول الحالي</th>${admin ? '<th>الموظف</th>' : ''}</tr></thead><tbody>
+      ${items.map((p) => `<tr class="click ${sel.has(p.id) ? 'sel' : ''}" data-id="${p.id}">${admin ? `<td><input type="checkbox" class="rs" ${sel.has(p.id) ? 'checked' : ''}></td>` : ''}
+        <td class="mono">${esc(p.mrn)} ${copyBtn(p.mrn, 'رقم الملف')}</td><td>${esc(p.name)} ${p.out_of_city ? '<span class="badge b-amber">خارج المدينة</span>' : ''} ${periodicBadge(p)}</td>
+        <td class="mono">${esc(p.phone)}</td><td>${esc(p.clinic)}</td><td>${fmtDate(p.review_date)} ${dueBadge(p)}</td><td>${statusBadge(p)}</td>
+        <td>${p.px_case_id ? `<span class="badge b-amber">تجربة المريض · ${esc(p.px_status_label)}</span>` : esc(p.current_handler)}</td>${admin ? `<td>${esc(p.assigned_name || '—')}</td>` : ''}</tr>`).join('')}
+      </tbody></table></div><div class="pager">${last.total} مريض · صفحة ${last.page} من ${Math.max(1, Math.ceil(last.total / last.size))}
+      <button class="btn sm" id="prev" ${last.page <= 1 ? 'disabled' : ''}>السابق</button><button class="btn sm" id="next" ${last.page * last.size >= last.total ? 'disabled' : ''}>التالي</button></div>`
+      : '<div class="card empty">لا توجد نتائج</div>';
+    $$('#list tbody tr').forEach((tr) => tr.onclick = (e) => {
+      const id = +tr.dataset.id;
+      if (e.target.classList.contains('rs')) { e.target.checked ? sel.add(id) : sel.delete(id); tr.classList.toggle('sel', e.target.checked); renderBulk(); return; }
+      openPatient(id, load);
+    });
+    $('#prev') && ($('#prev').onclick = () => { pageNo--; load(); });
+    $('#next') && ($('#next').onclick = () => { pageNo++; load(); });
+    const sa = $('#selAll');
+    if (sa) sa.onchange = () => { items.forEach((p) => sa.checked ? sel.add(p.id) : sel.delete(p.id)); renderList(); renderBulk(); };
+  };
+  const renderBulk = () => {
+    if (!admin) return;
+    $('#bulk').innerHTML = `<div class="bulk"><b>${sel.size}</b> محدد
+      <button class="btn sm" id="selFiltered">تحديد كل نتائج البحث (${last?.total ?? 0})</button>
+      ${sel.size ? `<span class="spacer"></span><select id="bTo"><option value="">إسناد إلى…</option>${userOptions('')}<option value="none">إلغاء الإسناد</option></select>
+      <input type="text" id="bReason" placeholder="سبب التحويل (اختياري)">
+      <button class="btn sm primary" id="bGo">تنفيذ</button><button class="btn sm" id="bAuto">توزيع تلقائي للمحدد</button><button class="btn sm" id="bClear">إلغاء التحديد</button>` : ''}</div>`;
+    $('#selFiltered').onclick = async () => { (await GET('/api/patients/ids?' + params())).forEach((i) => sel.add(i)); renderList(); renderBulk(); };
+    if (!sel.size) return;
+    $('#bClear').onclick = () => { sel.clear(); renderList(); renderBulk(); };
+    $('#bGo').onclick = () => guard(async () => {
+      const to = $('#bTo').value;
+      if (!to) return toast('اختر الموظف', true);
+      const r = await POST('/api/assign', { patient_ids: [...sel], to_user: to, reason: $('#bReason').value });
+      toast(`تم نقل ${r.moved} مريض`); sel.clear(); renderBulk(); load(); refreshCounts();
+    });
+    $('#bAuto').onclick = () => autoDistributeDialog([...sel], () => { sel.clear(); renderBulk(); load(); });
+  };
+  $$('#flt [name]').forEach((i) => i.addEventListener(i.type === 'search' ? 'input' : 'change', debounce(() => { pageNo = 1; load(); }, 300)));
+  $('#addP').onclick = () => patientForm(null, load);
+  $('#copyAll').onclick = async () => {
+    const p = params(); p.set('size', 500);
+    const all = await GET('/api/patients?' + p);
+    copyText(rowsTSV(all.items), `${all.items.length} مريض (الصق في Excel)`);
+  };
+  await load(); renderBulk();
+};
+
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+function patientForm(p, after) {
+  const admin = S.me.role === 'admin', px = S.me.role === 'px';
+  const isNew = !p; p = p || {};
+  const can = (f) => isNew || admin || (px ? ['phone', 'phone2', 'city', 'district', 'address'].includes(f) : f !== 'mrn' && f !== 'review_date');
+  const fld = (name, label, type = 'text', req = false, extra = '') => can(name) ? `<label class="f"><span class="${req ? 'req' : ''}">${label}</span><input type="${type}" name="${name}" value="${esc(p[name] ?? '')}" ${extra}></label>` : '';
+  const form = el(`<form><div class="grid g2">
+    ${fld('mrn', 'رقم الملف الطبي', 'text', true, 'dir="ltr"')}${fld('name', 'الاسم الرباعي', 'text', true)}
+    ${fld('phone', 'رقم الجوال', 'text', false, 'dir="ltr" placeholder="05XXXXXXXX"')}${fld('phone2', 'رقم جوال إضافي', 'text', false, 'dir="ltr"')}
+    ${fld('clinic', 'العيادة')}${fld('pharmacy', 'الصيدلية')}${fld('city', 'المدينة')}${fld('district', 'الحي')}
+    ${fld('address', 'العنوان الوطني المختصر', 'text', false, 'dir="ltr" placeholder="RRRD2929"')}
+    ${(isNew || admin) ? fld('review_date', 'تاريخ المراجعة', 'date') : ''}
+    ${isNew && admin ? `<label class="f"><span>الموظف المسؤول</span><select name="assigned_to"><option value="">غير مسند</option>${userOptions('')}</select></label>` : ''}
+    ${!px ? `<label class="f"><span>يرغب باستلام الشحنات بشكل دوري</span><select name="periodic"><option value="" ${p.periodic == null ? 'selected' : ''}>غير محدد</option><option value="1" ${p.periodic === 1 ? 'selected' : ''}>نعم</option><option value="0" ${p.periodic === 0 ? 'selected' : ''}>لا</option></select></label>` : ''}
+    </div>${!px ? `<label class="check" style="margin-bottom:10px"><input type="checkbox" name="out_of_city" ${p.out_of_city ? 'checked' : ''}> خارج المدينة</label>
+    <label class="f"><span>ملاحظات الملف</span><textarea name="notes">${esc(p.notes || '')}</textarea></label>` : ''}
+    ${!isNew ? '<p class="hint">تُحفظ القيم السابقة تلقائيًا في سجل التعديلات.</p>' : ''}<div class="err"></div></form>`);
+  const m = modal(isNew ? 'إضافة مريض' : 'تعديل بيانات المريض', form, { footer: '<button class="btn primary" data-save>حفظ</button>' });
+  $('[data-save]', m).onclick = async () => {
+    const body = {};
+    $$('[name]', form).forEach((i) => { body[i.name] = i.type === 'checkbox' ? i.checked : i.value; });
+    try {
+      if (isNew) await POST('/api/patients', body); else await PATCH('/api/patients/' + p.id, body);
+      toast('تم الحفظ'); m.close(); after && after();
+    } catch (e) { $('.err', form).textContent = e.message; }
+  };
+}
+
+// ---------------------------------------------------------- ملف المريض
+async function openPatient(id, after) {
+  const p = await guard(() => GET('/api/patients/' + id));
+  const admin = S.me.role === 'admin', reviewer = admin || S.me.can_review, px = S.me.role === 'px';
+  $$('.drawer,.overlay.dr').forEach((x) => x.remove());
+  const ov = el('<div class="overlay dr" style="padding:0"></div>');
+  const d = el(`<div class="drawer"><div class="dh"><div style="flex:1"><h2>${esc(p.name)}</h2>
+      <div class="row" style="margin-top:6px"><span class="mono">${esc(p.mrn)}</span>${statusBadge(p)} ${dueBadge(p)} ${p.out_of_city ? '<span class="badge b-amber">خارج المدينة</span>' : ''}
+      ${p.px_case_id ? `<span class="badge b-amber">لدى تجربة المريض · ${esc(p.px_status_label)}</span>` : ''}</div></div>
+      <button class="btn sm" data-copy="${esc(patientText(p))}" data-label="ملف المريض">نسخ الملف</button><button class="icon-btn" style="font-size:22px" data-x>×</button></div>
+    <div class="db"></div></div>`);
+  const close = () => { d.remove(); ov.remove(); };
+  ov.onclick = close; $('[data-x]', d).onclick = close;
+  document.body.append(ov, d);
+  const kv = (l, v, copy) => `<dt>${l}</dt><dd>${v || '<span class="hint">—</span>'} ${copy && v ? copyBtn(copy, l) : ''}</dd>`;
+  const lastRev = p.reviews[0];
+  $('.db', d).innerHTML = `
+    <div class="row" style="margin-bottom:14px">
+      ${reviewer && !px ? '<button class="btn primary" data-a="review">مراجعة الاستحقاق</button>' : ''}
+      ${!px || p.px_case_id ? '<button class="btn" data-a="edit">تعديل البيانات</button>' : ''}
+      ${!px ? '<button class="btn" data-a="refer">إحالة: بيانات خاطئة</button>' : ''}
+      ${admin ? '<button class="btn" data-a="assign">إعادة الإسناد</button>' : ''}
+      ${p.px_case_id && (admin || px) ? `<button class="btn" data-a="case">فتح حالة تجربة المريض</button>` : ''}
+    </div>
+    <dl class="kv">
+      ${kv('رقم الملف الطبي', `<span class="mono">${esc(p.mrn)}</span>`, p.mrn)}
+      ${kv('الاسم', esc(p.name), p.name)}
+      ${kv('الجوال', p.phone ? `<span class="mono">${esc(p.phone)}</span>` : '', p.phone)}
+      ${kv('جوال إضافي', p.phone2 ? `<span class="mono">${esc(p.phone2)}</span>` : '', p.phone2)}
+      ${kv('العيادة', esc(p.clinic))}${kv('الصيدلية', esc(p.pharmacy))}${kv('المدينة', esc(p.city))}${kv('الحي', esc(p.district), p.district)}${kv('الشحن الدوري', p.periodic === 1 ? 'يرغب' : p.periodic === 0 ? '<span class="badge b-red">لا يرغب</span>' : '')}
+      ${kv('العنوان الوطني', p.address ? `<span class="mono">${esc(p.address)}</span>` : '', p.address)}
+      ${kv('تاريخ المراجعة القادم', p.review_date ? fmtDate(p.review_date) + ' ' + dueBadge(p) : '')}
+      ${kv('الموظف المسند', esc(p.assigned_name || 'غير مسند'))}
+      ${kv('المسؤول الحالي', esc(p.current_handler))}
+      ${kv('ملاحظات الملف', esc(p.notes))}
+    </dl>
+    ${lastRev ? `<div class="sep"></div><b>آخر قرار للصيدلي</b> <span class="hint">${esc(lastRev.by_name)} · ${fmtTime(lastRev.at)}</span>
+      ${lastRev.note ? `<div class="note-internal" style="margin-top:8px">${esc(lastRev.note)}</div>` : ''}${lastRev.patient_note ? `<div class="note-patient" style="margin-top:8px">${esc(lastRev.patient_note)}</div>` : ''}` : ''}
+    <div class="sep"></div>
+    <div class="tabs" id="ptabs"></div><div id="ptab"></div>`;
+  const tabs = {
+    reviews: ['المراجعات', p.reviews.length, () => p.reviews.map((r) => `<li><b>${esc({ eligible: 'مستحق', not_eligible: 'غير مستحق', no_rx: 'لا توجد وصفة فعّالة', wrong_data: 'بيانات خاطئة' }[r.decision])}</b>
+      ${r.next_date ? ` · التاريخ القادم ${fmtDate(r.next_date)}` : ''} ${r.wrong_field ? ` · الحقل: ${esc(r.wrong_field)} — ${esc(r.correction)}` : ''}<br>
+      ${r.note ? `<span>ملاحظة داخلية: ${esc(r.note)}</span><br>` : ''}${r.patient_note ? `<span>للمريض: ${esc(r.patient_note)}</span><br>` : ''}<small>${esc(r.by_name)} · ${fmtTime(r.at)}</small></li>`)],
+    cases: ['تجربة المريض', p.cases.length, () => p.cases.map((c) => `<li><span class="badge ${PX_BADGE[c.status]}">${esc(c.status_label)}</span> <b>${esc(c.reason_label)}</b>
+      ${c.close_note ? ` · ${esc(c.close_note)}` : ''}<br><small>أُحيلت ${fmtTime(c.created_at)}${c.closed_at ? ' · أُغلقت ' + fmtTime(c.closed_at) : ''}</small></li>`)],
+    requests: ['الطلبات', p.requests.length, () => p.requests.map((r) => `<li><span class="mono">${esc(r.ref)}</span> · ${esc(r.type_label)} <span class="badge ${REQ_BADGE[r.status]}">${esc(r.status_label)}</span><br><small>${fmtTime(r.created_at)}</small></li>`)],
+    history: ['سجل التعديلات', p.history.length, () => p.history.map((h) => `<li><b>${esc(h.field_label)}</b>: <s class="hint">${esc(h.old_value || '—')}</s> ← ${esc(h.new_value || '—')}<br><small>${esc(h.by_name)} · ${esc(h.source || '')} · ${fmtTime(h.at)}</small></li>`)],
+    transfers: ['الإسناد', p.transfers.length, () => p.transfers.map((t) => `<li>من <b>${esc(t.from_name || 'غير مسند')}</b> إلى <b>${esc(t.to_name || 'غير مسند')}</b> ${t.reason ? '· ' + esc(t.reason) : ''}<br><small>${esc(t.by_name)} · ${fmtTime(t.at)}</small></li>`)],
+    log: ['سجل الإجراءات', p.log.length, () => p.log.map((l) => `<li><b>${esc(l.action)}</b> ${l.details ? `<span class="hint">${esc(fmtDetails(l.details))}</span>` : ''}<br><small>${esc(l.user_name)} · ${fmtTime(l.at)}</small></li>`)],
+    exports: ['التصدير', p.exports.length, () => p.exports.map((x) => `<li>دفعة رقم <span class="num">${x.id}</span><br><small>${esc(x.by_name)} · ${fmtTime(x.at)}</small></li>`)],
+  };
+  const showTab = (k) => {
+    $$('#ptabs button', d).forEach((b) => b.classList.toggle('on', b.dataset.k === k));
+    const items = tabs[k][2]();
+    $('#ptab', d).innerHTML = items.length ? `<ul class="timeline">${items.join('')}</ul>` : '<div class="empty">لا يوجد</div>';
+  };
+  $('#ptabs', d).innerHTML = Object.entries(tabs).map(([k, v]) => `<button data-k="${k}">${v[0]} (${v[1]})</button>`).join('');
+  $$('#ptabs button', d).forEach((b) => b.onclick = () => showTab(b.dataset.k));
+  showTab('reviews');
+  const reopen = () => { close(); openPatient(id, after); after && after(); refreshCounts(); };
+  $$('[data-a]', d).forEach((b) => b.onclick = () => {
+    const a = b.dataset.a;
+    if (a === 'review') reviewDialog(p, reopen);
+    if (a === 'edit') patientForm(p, reopen);
+    if (a === 'refer') referDialog(p, reopen);
+    if (a === 'assign') assignDialog([p.id], reopen);
+    if (a === 'case') { close(); openCase(p.px_case_id, after); }
+  });
+}
+
+function fmtDetails(s) {
+  try {
+    const o = JSON.parse(s);
+    if (Array.isArray(o)) return o.join('، ');
+    return Object.entries(o).filter(([, v]) => v !== null && v !== '' && v !== false).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v === true ? 'نعم' : v}`).join(' · ');
+  } catch (e) { return s; }
+}
+
+function assignDialog(ids, after) {
+  const m = modal('إعادة إسناد', `<label class="f"><span>إلى الموظف</span><select id="aTo">${userOptions('')}<option value="none">إلغاء الإسناد</option></select></label>
+    <label class="f"><span>سبب التحويل</span><input type="text" id="aR" placeholder="مثال: إجازة، إعادة توزيع"></label>`, { footer: '<button class="btn primary" data-ok>حفظ</button>' });
+  $('[data-ok]', m).onclick = () => guard(async () => {
+    await POST('/api/assign', { patient_ids: ids, to_user: $('#aTo', m).value, reason: $('#aR', m).value });
+    toast('تم الإسناد'); m.close(); after && after();
+  });
+}
+
+function autoDistributeDialog(ids, after) {
+  const emps = S.users.filter((u) => u.role === 'employee' && u.active);
+  const m = modal('توزيع تلقائي', `${ids ? `<p>سيتم توزيع <b>${ids.length}</b> مريض محدد.</p>` : '<p>سيتم توزيع <b>جميع المرضى غير المسندين</b>.</p>'}
+    <label class="f"><span>طريقة التوزيع</span><select id="dMode"><option value="equal">بالتساوي بين الموظفين</option><option value="load">حسب عدد الحالات المفتوحة لكل موظف (الأقل حملًا أولًا)</option></select></label>
+    <span class="hint">الموظفون المشمولون</span><div class="chips" style="margin:6px 0 4px">${emps.map((u) => `<label class="chip"><input type="checkbox" value="${u.id}" checked> ${esc(u.name)}</label>`).join('') || '<span class="err">لا يوجد موظفون نشطون</span>'}</div>`,
+  { footer: '<button class="btn primary" data-ok>توزيع</button>' });
+  $('[data-ok]', m).onclick = () => guard(async () => {
+    const users = $$('.chip input:checked', m).map((i) => +i.value);
+    const r = await POST('/api/assign/auto', { mode: $('#dMode', m).value, user_ids: users, scope: ids ? 'selected' : 'unassigned', patient_ids: ids || [] });
+    m.close();
+    modal('نتيجة التوزيع', `<ul>${Object.entries(r.result).map(([n, c]) => `<li>${esc(n)}: <b>${c}</b> مريض</li>`).join('')}</ul>`);
+    refreshCounts(); after && after();
+  });
+}
+
+function referDialog(p, after) {
+  const m = modal('إحالة لتجربة المريض: بيانات خاطئة', `<p class="hint">يبقى المريض مسندًا إليك، ويعود إليك بعد التصحيح.</p>
+    <label class="f"><span class="req">الحقل الخاطئ</span><select id="rf"><option>رقم الجوال</option><option>رقم الجوال الإضافي</option><option>العنوان الوطني</option><option>المدينة</option><option>الاسم</option><option>أخرى</option></select></label>
+    <label class="f"><span class="req">وصف التصحيح المطلوب</span><textarea id="rc"></textarea></label>
+    <label class="f"><span>ملاحظة داخلية</span><textarea id="rn"></textarea></label><div class="err"></div>`, { footer: '<button class="btn primary" data-ok>إحالة</button>' });
+  $('[data-ok]', m).onclick = async () => {
+    try { await POST(`/api/patients/${p.id}/refer`, { wrong_field: $('#rf', m).value, correction: $('#rc', m).value, note: $('#rn', m).value }); toast('أُحيل لتجربة المريض'); m.close(); after(); }
+    catch (e) { $('.err', m).textContent = e.message; }
+  };
+}
+
+// ============================================================ مراجعة الصيدلي
+function reviewDialog(p, after, nextFn) {
+  const opts = S.settings.refill_options || [30, 60, 90];
+  const form = el(`<div>
+    <div class="row" style="margin-bottom:12px"><span class="mono">${esc(p.mrn)}</span><b>${esc(p.name)}</b>${statusBadge(p)} ${dueBadge(p)}<span class="hint">${esc(p.clinic || '')}</span>
+      <span class="hint">موعد المراجعة: ${fmtDate(p.review_date)}</span></div>
+    ${p.last_note ? `<div class="note-internal" style="margin-bottom:12px">آخر ملاحظة: ${esc(p.last_note)}</div>` : ''}
+    <div class="decisions">
+      <button data-d="eligible"><b>مستحق الآن</b><small>ينتقل لقائمة المستحقين للتصدير</small></button>
+      <button data-d="not_eligible"><b>غير مستحق حاليًا</b><small>تاريخ الاستحقاق القادم إلزامي · يُحال لتجربة المريض</small></button>
+      <button data-d="no_rx"><b>لا توجد وصفة فعّالة</b><small>ملاحظة بالإجراء المطلوب · يُحال لتجربة المريض</small></button>
+      <button data-d="wrong_data"><b>بيانات خاطئة</b><small>تحديد الحقل والتصحيح · يُحال لتجربة المريض</small></button>
+    </div>
+    <div id="dateBox" hidden><label class="f"><span id="dLbl">تاريخ الاستحقاق القادم</span><input type="date" id="nd" min="${addDays(todayStr(), 1)}"></label>
+      <div class="chips" style="margin:-4px 0 12px"><span class="hint">حساب تلقائي من اليوم:</span>${opts.map((n) => `<button type="button" class="chip" data-add="${n}">+${n} يوم</button>`).join('')}</div></div>
+    <div id="wfBox" hidden><label class="f"><span class="req">الحقل الخاطئ</span><select id="wf"><option>رقم الجوال</option><option>رقم الجوال الإضافي</option><option>العنوان الوطني</option><option>المدينة</option><option>الاسم</option><option>رقم الملف</option><option>أخرى</option></select></label>
+      <label class="f"><span class="req">وصف التصحيح المطلوب</span><input type="text" id="corr"></label></div>
+    <label class="f"><span id="nLbl">ملاحظة داخلية (لا تُرسل للمريض)</span><textarea id="note" rows="2"></textarea></label>
+    <label class="f" id="pnBox" hidden><span>ملاحظة موجّهة للمريض (تُدرج في رسالة واتساب)</span><textarea id="pnote" rows="2"></textarea></label>
+    <div class="err"></div></div>`);
+  const m = modal('مراجعة الاستحقاق', form, { wide: false, footer: `<button class="btn primary" data-ok>حفظ القرار</button>${nextFn ? '<button class="btn" data-skip>تخطي</button>' : ''}` });
+  let dec = null;
+  $$('.decisions button', form).forEach((b) => b.onclick = () => {
+    dec = b.dataset.d;
+    $$('.decisions button', form).forEach((x) => x.classList.toggle('on', x === b));
+    $('#dateBox', form).hidden = !['eligible', 'not_eligible'].includes(dec);
+    $('#dLbl', form).className = dec === 'not_eligible' ? 'req' : '';
+    $('#dLbl', form).textContent = dec === 'eligible' ? 'تاريخ الصرف القادم (يعود فيه للمراجعة تلقائيًا)' : 'تاريخ الاستحقاق القادم';
+    if (dec === 'eligible' && !$('#nd', form).value) $('#nd', form).value = addDays(todayStr(), +(S.settings.refill_default || 30));
+    $('#wfBox', form).hidden = dec !== 'wrong_data';
+    $('#pnBox', form).hidden = dec === 'eligible';
+    $('#nLbl', form).className = dec === 'no_rx' ? 'req' : '';
+    $('#nLbl', form).textContent = dec === 'no_rx' ? 'ملاحظة توضح الإجراء المطلوب من المريض (داخلية)' : 'ملاحظة داخلية (لا تُرسل للمريض)';
+  });
+  $$('[data-add]', form).forEach((b) => b.onclick = () => { $('#nd', form).value = addDays(todayStr(), +b.dataset.add); });
+  $('[data-ok]', m).onclick = async () => {
+    if (!dec) return ($('.err', form).textContent = 'اختر القرار');
+    try {
+      const r = await POST(`/api/patients/${p.id}/review`, { decision: dec, next_date: $('#nd', form).value, note: $('#note', form).value,
+        patient_note: $('#pnote', form).value, wrong_field: $('#wf', form).value, correction: $('#corr', form).value });
+      toast(r.px_case_id ? 'تم الحفظ وأُحيل المريض لتجربة المريض' : 'تم الحفظ');
+      m.close(); refreshCounts();
+      if (nextFn) nextFn(); else after && after();
+    } catch (e) { $('.err', form).textContent = e.message; }
+  };
+  if (nextFn) $('[data-skip]', m).onclick = () => { m.close(); nextFn(true); };
+}
+
+const AR_DAYS = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+const dayName = (s) => AR_DAYS[new Date(s + 'T00:00:00Z').getUTCDay()];
+
+VIEWS.review = async (qs) => {
+  const admin = S.me.role === 'admin';
+  const lead = +S.settings.lead_days;
+  const pg = page('مراجعة الصيدلي', `يظهر المريض قبل موعده بـ ${lead} أيام، ويبقى المتأخر حتى يُسجَّل قراره. لا يُعتمد أي مريض مستحقًا تلقائيًا.`,
+    '<button class="btn primary" id="startQ">مراجعة متتالية</button>');
+  pg.innerHTML = `<div class="filters" id="flt"><input type="search" name="q" placeholder="بحث برقم الملف أو الاسم"><select name="clinic"><option value="">كل العيادات</option></select>
+    ${admin ? `<select name="assigned"><option value="">كل الموظفين</option>${userOptions('', (u) => u.role === 'employee')}</select>` : ''}
+    <select id="ahead"><option value="0">المفتوحة للمراجعة</option><option value="14">+ القادمة خلال 14 يومًا</option><option value="30">+ القادمة خلال 30 يومًا</option></select></div>
+    <div id="list"></div>`;
+  let items = [], openDate = qs.get('date') || null;
+  const skipped = new Set();
+  const t = todayStr(), limit = addDays(t, lead);
+  const tone = (d) => d < t ? 'red' : d === t ? 'amber' : d <= limit ? 'blue' : 'gray';
+  const daysTxt = (d) => { const n = Math.round((new Date(d) - new Date(t)) / 864e5); return n < 0 ? `متأخر ${-n} يوم` : n === 0 ? 'اليوم' : n === 1 ? 'غدًا' : `بعد ${n} أيام`; };
+
+  const load = async () => {
+    const p = new URLSearchParams();
+    $$('#flt [name]').forEach((i) => i.value && p.set(i.name, i.value));
+    const ahead = +$('#ahead').value;
+    if (ahead) p.set('until', addDays(t, ahead));
+    items = await GET('/api/review/queue?' + p);
+    const cs = $('[name=clinic]', pg);
+    if (cs.options.length === 1) [...new Set(items.map((x) => x.clinic).filter(Boolean))].sort().forEach((c) => cs.add(new Option(c, c)));
+    render();
+  };
+  const groups = () => { const g = {}; items.forEach((p) => (g[p.review_date] = g[p.review_date] || []).push(p)); return g; };
+
+  const render = () => {
+    const g = groups(), dates = Object.keys(g).sort();
+    if (openDate && !g[openDate]) {
+      // انتهى هذا التاريخ ← الانتقال للتاريخ التالي المفتوح أو العودة للتواريخ
+      const nxt = dates.find((d) => d > openDate && d <= limit);
+      if (nxt) toast(`اكتمل ${openDate} ✓ — الانتقال إلى ${nxt}`); else if (openDate) toast(`اكتمل ${openDate} ✓`);
+      openDate = nxt || null;
+    }
+    $('#flt').hidden = !!openDate;
+    if (openDate) return renderDay(g[openDate], openDate, dates);
+    if (!items.length) { $('#list').innerHTML = `<div class="card empty">${ic('check')}<br>لا يوجد مرضى بانتظار المراجعة حاليًا</div>`; return; }
+    const overdueN = dates.filter((d) => d < t).reduce((n, d) => n + g[d].length, 0);
+    $('#list').innerHTML = `<div class="legend"><span><i class="lg red"></i>متأخر</span><span><i class="lg amber"></i>اليوم</span><span><i class="lg blue"></i>مفتوح للمراجعة</span><span><i class="lg gray"></i>لم يحن بعد</span>
+      <span><i class="lg red" style="width:8px;height:8px"></i>كان غير مستحق</span><span><i class="lg" style="width:8px;height:8px;background:var(--yellow-sys)"></i>خارج المدينة</span></div>
+      ${overdueN ? `<div class="alert-red">${ic('alert')} يوجد <b>${overdueN}</b> مريض متأخر عن موعده — ابدأ بالمربعات الحمراء</div>` : ''}
+      <div class="dgrid">${dates.map((d) => {
+        const gg = g[d];
+        const flags = (gg.some((p) => p.status === 'not_eligible') ? '<i title="كان غير مستحق"></i>' : '') + (gg.some((p) => p.out_of_city) ? '<i class="oc" title="خارج المدينة"></i>' : '');
+        return `<button class="dbox ${tone(d)}" data-d="${d}"><span class="dn">${dayName(d)}</span><b class="num">${d}</b>
+          <span class="dc"><b class="num">${gg.length}</b>مريض</span><span class="ds">${daysTxt(d)}</span><span class="df">${flags}</span></button>`;
+      }).join('')}</div>`;
+    $$('.dbox').forEach((b) => b.onclick = () => { openDate = b.dataset.d; render(); window.scrollTo(0, 0); });
+  };
+
+  const renderDay = (list, d, dates) => {
+    const locked = d > limit;
+    const idx = dates.indexOf(d), prev = dates[idx - 1], next = dates[idx + 1];
+    $('#list').innerHTML = `<div class="dhead"><button class="back" id="back">‹ كل التواريخ</button><span class="spacer"></span>
+        ${prev ? `<button class="btn sm" data-go="${prev}">→ ${prev}</button>` : ''}${next ? `<button class="btn sm" data-go="${next}">${next} ←</button>` : ''}</div>
+      <div class="dhead"><div><h2>${dayName(d)} <span class="num">${d}</span></h2><span class="badge ${tone(d) === 'red' ? 'b-red' : tone(d) === 'amber' ? 'b-amber' : tone(d) === 'blue' ? 'b-blue' : ''}">${daysTxt(d)} · ${list.length} مريض</span></div>
+        <span class="spacer"></span>${locked ? `<span class="badge">يُفتح للمراجعة قبل موعده بـ ${lead} أيام</span>` : `<button class="btn sm green" id="allElig">${ic('check')} اعتماد الكل مستحقين</button>`}</div>
+      <div class="pcards">${list.map((p) => `<div class="pcard ${p.overdue ? 'red' : tone(d)}" data-id="${p.id}">
+        <div><div class="pn"><a href="#" data-open style="color:inherit;text-decoration:none">${esc(p.name)}</a></div>
+          <div class="pm"><span class="mono">${esc(p.mrn)}</span>${copyBtn(p.mrn, 'رقم الملف')}<span>${esc(p.clinic || '')}</span><span class="mono">${esc(p.phone || '')}</span>${admin ? `<span>${esc(p.assigned_name || '—')}</span>` : ''}</div>
+          <div class="pb">${dueBadge(p)} ${p.status === 'not_eligible' ? '<span class="badge b-red">كان غير مستحق</span>' : ''}${p.status === 'exported' ? '<span class="badge b-brand">دورة صرف جديدة</span>' : ''} ${p.out_of_city ? '<span class="badge b-amber">خارج المدينة</span>' : ''} ${periodicBadge(p)}${p.px_case_id ? ' <span class="badge b-purple">لدى تجربة المريض</span>' : ''}</div>
+          ${p.last_note ? `<div class="hint" style="margin-top:6px">آخر ملاحظة: ${esc(p.last_note.slice(0, 120))}</div>` : ''}</div>
+        <div class="act">${locked ? '<span class="hint">لم يحن موعده</span>' : `<button class="btn green" data-x="eligible">${ic('check')} مستحق</button><button class="btn danger-fill" data-x="not">✕ غير مستحق</button><button class="btn" data-x="more">خيارات</button>`}</div></div>`).join('')}</div>`;
+    $('#back').onclick = () => { openDate = null; render(); };
+    $$('[data-go]').forEach((b) => b.onclick = () => { openDate = b.dataset.go; render(); window.scrollTo(0, 0); });
+    $$('.pcard').forEach((card) => {
+      const p = list.find((x) => x.id === +card.dataset.id);
+      $('[data-open]', card).onclick = (e) => { e.preventDefault(); openPatient(p.id, load); };
+      $$('[data-x]', card).forEach((b) => b.onclick = () => {
+        const x = b.dataset.x;
+        if (x === 'eligible') decide(p, card, { decision: 'eligible' });
+        if (x === 'more') reviewDialog(p, load);
+        if (x === 'not') inlineNotEligible(p, card);
+      });
+    });
+    const ae = $('#allElig');
+    if (ae) ae.onclick = async () => {
+      if (!(await confirmBox(`اعتماد <b>${list.length}</b> مريض بتاريخ ${d} مستحقين للصرف؟<br><span class="hint">تأكد أنك راجعت كل مريض في هذه القائمة.</span>`, 'اعتماد الكل'))) return;
+      for (const p of list) await POST(`/api/patients/${p.id}/review`, { decision: 'eligible' }).catch((e) => toast(`${p.mrn}: ${e.message}`, true));
+      toast('تم الاعتماد'); refreshCounts(); load();
+    };
+  };
+
+  const decide = async (p, card, body) => {
+    try {
+      const r = await POST(`/api/patients/${p.id}/review`, body);
+      card.classList.add('done');
+      card.querySelector('.act').innerHTML = body.decision === 'eligible' ? `<span class="badge b-green">${ic('check')} مستحق — انتقل للتصدير</span>` : '<span class="badge b-red">✕ غير مستحق — أُحيل لتجربة المريض</span>';
+      const inl = card.querySelector('.inl'); if (inl) inl.remove();
+      toast(r.px_case_id ? 'تم الحفظ وأُحيل لتجربة المريض' : 'تم اعتماده مستحقًا');
+      refreshCounts();
+      setTimeout(load, 700);
+    } catch (e) { toast(e.message, true); }
+  };
+
+  const inlineNotEligible = (p, card) => {
+    if (card.querySelector('.inl')) return;
+    const opts = S.settings.refill_options || [30, 60, 90];
+    card.insertAdjacentHTML('beforeend', `<div class="inl"><b>غير مستحق حاليًا — تاريخ الاستحقاق القادم إلزامي</b>
+      <div class="row" style="gap:6px"><input type="date" class="nd" min="${addDays(t, 1)}">${opts.map((n) => `<button class="chip" data-add="${n}">+${n} يوم</button>`).join('')}</div>
+      <input type="text" class="nt" placeholder="ملاحظة داخلية (اختياري)">
+      <div class="row" style="gap:6px"><button class="btn danger-fill" data-ok>حفظ غير مستحق</button><button class="btn" data-cancel>إلغاء</button></div></div>`);
+    const box = card.querySelector('.inl');
+    $$('[data-add]', box).forEach((b) => b.onclick = () => { $('.nd', box).value = addDays(t, +b.dataset.add); });
+    $('[data-cancel]', box).onclick = () => box.remove();
+    $('[data-ok]', box).onclick = () => {
+      if (!$('.nd', box).value) return toast('تاريخ الاستحقاق القادم إلزامي', true);
+      decide(p, card, { decision: 'not_eligible', next_date: $('.nd', box).value, note: $('.nt', box).value });
+    };
+    $('.nd', box).focus();
+  };
+
+  const next = async () => {
+    const p = new URLSearchParams();
+    $$('#flt [name]').forEach((i) => i.value && p.set(i.name, i.value));
+    const q = await GET('/api/review/queue?' + p);
+    const x = q.find((y) => !skipped.has(y.id));
+    if (!x) { load(); return toast('انتهت قائمة المراجعة ✓'); }
+    reviewDialog(x, load, (s) => { if (s) skipped.add(x.id); next(); });
+  };
+  $('#startQ').onclick = () => { skipped.clear(); next(); };
+  $$('#flt [name]').forEach((i) => i.addEventListener('input', debounce(load, 300)));
+  $('#ahead').onchange = load;
+  await load();
+};
+
+// ============================================================ المستحقون والتصدير
+VIEWS.eligible = async () => {
+  const admin = S.me.role === 'admin';
+  const pg = page('المستحقون والتصدير', 'المرضى الذين اعتمد الصيدلي استحقاقهم ولم يُصدَّروا بعد', '<button class="btn" id="copyE">نسخ القائمة</button>');
+  pg.innerHTML = `<div class="tabs"><button class="on" data-t="c">قائمة المستحقين</button><button data-t="b">دفعات التصدير السابقة</button></div><div id="tc"></div>`;
+  const showC = async () => {
+    const tc = $('#tc');
+    tc.innerHTML = `<div class="filters" id="flt"><select name="location"><option value="all">داخل وخارج المدينة</option><option value="in">داخل المدينة فقط</option><option value="out">خارج المدينة فقط</option></select>
+      <select name="clinic"><option value="">كل العيادات</option></select>${admin ? `<select name="assigned"><option value="">كل الموظفين</option>${userOptions('', (u) => u.role === 'employee')}</select>` : ''}
+      <select name="periodic"><option value="">الشحن الدوري: الكل</option><option value="1">يرغب بالشحن الدوري</option><option value="0">لا يرغب</option></select></div>
+      <div id="list"></div>`;
+    let items = []; const sel = new Set();
+    const body = () => { const b = {}; $$('#flt [name]').forEach((i) => b[i.name] = i.value); return b; };
+    const load = async () => {
+      const b = body();
+      items = await GET('/api/export/candidates?' + new URLSearchParams(b));
+      sel.clear(); items.forEach((p) => sel.add(p.id));
+      const cs = $('[name=clinic]', tc);
+      if (cs.options.length === 1) [...new Set(items.map((x) => x.clinic).filter(Boolean))].forEach((c) => cs.add(new Option(c, c)));
+      render();
+    };
+    const render = () => {
+      const inN = items.filter((p) => !p.out_of_city).length, outN = items.length - inN;
+      $('#list').innerHTML = items.length ? `<div class="bulk"><b>${sel.size}</b> محدد من ${items.length} · داخل المدينة ${inN} · خارج المدينة ${outN}
+        <span class="spacer"></span><label class="check"><input type="checkbox" id="mark" checked> تعليمهم «تم التصدير»</label>
+        <label class="check"><input type="checkbox" id="split"> فصل خارج المدينة في ملف مستقل</label>
+        <button class="btn primary" id="exp">تصدير Excel وفق القالب</button></div>
+        <div class="tw"><table class="t"><thead><tr><th><input type="checkbox" id="sa" checked></th><th>رقم الملف</th><th>الاسم</th><th>الجوال</th><th>العنوان الوطني</th><th>المدينة</th><th>العيادة</th><th>الصرف القادم</th>${admin ? '<th>الموظف</th>' : ''}</tr></thead><tbody>
+        ${items.map((p) => `<tr class="click" data-id="${p.id}"><td><input type="checkbox" class="rs" ${sel.has(p.id) ? 'checked' : ''}></td><td class="mono">${esc(p.mrn)}</td><td>${esc(p.name)} ${p.out_of_city ? '<span class="badge b-amber">خارج المدينة</span>' : ''} ${periodicBadge(p)}</td>
+          <td class="mono">${esc(p.phone)} ${copyBtn(p.phone, 'الجوال')}</td><td class="mono">${esc(p.address)} ${copyBtn(p.address, 'العنوان')}</td><td>${esc(p.city)}</td><td>${esc(p.clinic)}</td><td>${fmtDate(p.review_date)}</td>${admin ? `<td>${esc(p.assigned_name || '')}</td>` : ''}</tr>`).join('')}</tbody></table></div>`
+        : '<div class="card empty">لا يوجد مستحقون بانتظار التصدير</div>';
+      $$('#list tbody tr').forEach((tr) => tr.onclick = (e) => {
+        const id = +tr.dataset.id;
+        if (e.target.classList.contains('rs')) { e.target.checked ? sel.add(id) : sel.delete(id); render(); return; }
+        openPatient(id, load);
+      });
+      const sa = $('#sa'); if (sa) { sa.checked = sel.size === items.length; sa.onchange = () => { items.forEach((p) => sa.checked ? sel.add(p.id) : sel.delete(p.id)); render(); }; }
+      const ex = $('#exp');
+      if (ex) ex.onclick = () => guard(async () => {
+        if (!sel.size) return toast('لم يتم تحديد مرضى', true);
+        const mark = $('#mark').checked;
+        if (mark && !(await confirmBox(`سيتم تصدير <b>${sel.size}</b> مريض وتعليمهم «تم التصدير» حتى لا يُصدَّروا مرة أخرى. متابعة؟`, 'تصدير'))) return;
+        await download('POST', '/api/export', { ...body(), patient_ids: [...sel], mark, split: $('#split').checked });
+        toast('تم إنشاء ملف التصدير'); refreshCounts(); load();
+      });
+    };
+    $$('#flt [name]').forEach((i) => i.onchange = load);
+    $('#copyE').onclick = () => copyText(rowsTSV(items.filter((p) => sel.has(p.id))), 'المحددين (الصق في Excel)');
+    await load();
+  };
+  const showB = async () => {
+    const rows = await GET('/api/export/batches');
+    $('#tc').innerHTML = rows.length ? `<div class="tw"><table class="t"><thead><tr><th>رقم الدفعة</th><th>التاريخ</th><th>بواسطة</th><th>العدد</th><th>الملف</th><th></th></tr></thead><tbody>
+      ${rows.map((b) => `<tr><td class="num">${b.id}</td><td>${fmtTime(b.at)}</td><td>${esc(b.by_name)}</td><td class="num">${b.count}</td><td>${esc(b.file)}</td>
+      <td><button class="btn sm" data-dl="${b.id}">تنزيل</button> ${admin ? `<button class="btn sm danger" data-undo="${b.id}">إلغاء التصدير</button>` : ''}</td></tr>`).join('')}</tbody></table></div>` : '<div class="card empty">لا توجد دفعات</div>';
+    $$('[data-dl]').forEach((b) => b.onclick = () => guard(() => download('GET', `/api/export/batches/${b.dataset.dl}/file`)));
+    $$('[data-undo]').forEach((b) => b.onclick = async () => {
+      if (!(await confirmBox('إعادة مرضى هذه الدفعة إلى قائمة المستحقين؟ (للحالات التي لم تُرسل فعليًا)', 'إعادة', true))) return;
+      const r = await guard(() => POST(`/api/export/batches/${b.dataset.undo}/undo`));
+      toast(`أعيد ${r.restored} مريض لقائمة المستحقين`); refreshCounts();
+    });
+  };
+  $$('.tabs button', pg).forEach((b) => b.onclick = () => { $$('.tabs button', pg).forEach((x) => x.classList.toggle('on', x === b)); b.dataset.t === 'c' ? showC() : showB(); });
+  await showC();
+};
+
+// ============================================================ تجربة المريض
+VIEWS.px = async (qs) => {
+  const pg = page('تجربة المريض', 'الحالات المحالة تلقائيًا: غير مستحق حاليًا، لا توجد وصفة فعّالة، بيانات خاطئة', '<a class="btn" href="#/search">' + ic('search') + ' بحث عن مريض</a>');
+  const st = qs.get('status') || 'open';
+  pg.innerHTML = `<div class="tabs" id="stt">${[['open', 'المفتوحة'], ['new', 'جديد'], ['contacting', 'جارٍ التواصل'], ['awaiting', 'بانتظار الرد'], ['done', 'تمت المعالجة'], ['unreachable', 'تعذر التواصل'], ['all', 'الكل']]
+    .map(([k, v]) => `<button data-s="${k}" class="${k === st ? 'on' : ''}">${v}</button>`).join('')}</div>
+    <div class="filters" id="flt"><input type="search" name="q" placeholder="بحث برقم الملف أو الاسم أو الجوال"><select name="reason"><option value="">كل الأسباب</option><option value="not_eligible">غير مستحق حاليًا</option><option value="no_rx">لا توجد وصفة فعّالة</option><option value="wrong_data">بيانات خاطئة</option></select></div><div id="list"></div>`;
+  let status = st;
+  const load = async () => {
+    const p = new URLSearchParams({ status });
+    $$('#flt [name]').forEach((i) => i.value && p.set(i.name, i.value));
+    const rows = await GET('/api/px/cases?' + p);
+    const RB = { not_eligible: 'b-red', no_rx: 'b-purple', wrong_data: 'b-amber' };
+    $('#list').innerHTML = rows.length ? `<div class="tw"><table class="t"><thead><tr><th>رقم الملف</th><th>الاسم</th><th>الجوال</th><th>السبب</th><th>الاستحقاق القادم</th><th>الحالة</th><th>الموظف الأصلي</th><th>تاريخ الإحالة</th><th>آخر تواصل</th></tr></thead><tbody>
+      ${rows.map((c) => `<tr class="click" data-id="${c.id}"><td class="mono">${esc(c.mrn)}</td><td>${esc(c.name)}</td><td class="mono">${esc(c.phone)}</td>
+        <td><span class="badge ${RB[c.reason]}">${esc(c.reason_label)}</span></td><td>${c.next_date ? fmtDate(c.next_date) : '—'}</td><td><span class="badge ${PX_BADGE[c.status]}">${esc(c.status_label)}</span></td>
+        <td>${esc(c.owner_name || '—')}</td><td>${fmtTime(c.created_at)}</td><td>${c.last_contact ? fmtTime(c.last_contact) : '<span class="hint">—</span>'}</td></tr>`).join('')}</tbody></table></div>`
+      : '<div class="card empty">لا توجد حالات</div>';
+    $$('#list tr[data-id]').forEach((tr) => tr.onclick = () => openCase(+tr.dataset.id, load));
+  };
+  $$('#stt button').forEach((b) => b.onclick = () => { status = b.dataset.s; $$('#stt button').forEach((x) => x.classList.toggle('on', x === b)); load(); });
+  $$('#flt [name]').forEach((i) => i.addEventListener('input', debounce(load, 300)));
+  await load();
+};
+
+VIEWS.complaints = async () => {
+  const pg = page('التواصل والشكاوى', 'رسائل المرضى من البوابة — تصل مباشرة لحساب تجربة المريض');
+  pg.innerHTML = `<div class="tabs" id="stt">${[['open', 'المفتوحة'], ['new', 'جديد'], ['in_progress', 'قيد المعالجة'], ['done', 'مكتمل'], ['all', 'الكل']].map(([k, v], i) => `<button data-s="${k}" class="${i ? '' : 'on'}">${v}</button>`).join('')}</div>
+    <div class="filters"><input type="search" id="cq" placeholder="بحث بالاسم أو رقم الملف أو الجوال أو رقم الطلب"></div><div id="list"></div>`;
+  let status = 'open';
+  const load = async () => {
+    const p = new URLSearchParams({ type: 'complaint', status }); if ($('#cq').value) p.set('q', $('#cq').value);
+    const rows = await GET('/api/requests?' + p);
+    $('#list').innerHTML = rows.length ? `<div class="tw"><table class="t"><thead><tr><th>رقم الطلب</th><th>النوع</th><th>الاسم</th><th>رقم الملف</th><th>الجوال</th><th>الرسالة</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>
+      ${rows.map((r) => `<tr class="click" data-id="${r.id}"><td class="mono">${esc(r.ref)}</td><td><span class="badge ${r.subtype === 'شكوى' ? 'b-red' : 'b-blue'}">${esc(r.subtype || 'تواصل')}</span> ${r.has_attachment ? '📎' : ''}</td>
+        <td>${esc(r.patient_name || r.full_name || '')} ${!r.patient_id ? '<span class="badge">غير مسجل</span>' : ''}</td><td class="mono">${esc(r.mrn)}</td><td class="mono">${esc(r.phone || '')}</td>
+        <td class="hint">${esc(r.details || '')}</td><td><span class="badge ${REQ_BADGE[r.status]}">${esc(r.status_label)}</span></td><td>${fmtTime(r.created_at)}</td></tr>`).join('')}</tbody></table></div>`
+      : '<div class="card empty">لا توجد رسائل</div>';
+    $$('#list tr[data-id]').forEach((tr) => tr.onclick = () => openRequest(+tr.dataset.id, load));
+  };
+  $$('#stt button').forEach((b) => b.onclick = () => { status = b.dataset.s; $$('#stt button').forEach((x) => x.classList.toggle('on', x === b)); load(); });
+  $('#cq').addEventListener('input', debounce(load, 300));
+  await load();
+};
+
+VIEWS.search = async (qs) => {
+  const pg = page('البحث عن مريض', 'اكتب رقم الملف أو الاسم أو الجوال لمعرفة حالة المريض وطلباته فورًا');
+  pg.innerHTML = `<div class="bigsearch"><input type="search" id="sq" placeholder="رقم الملف، الاسم، الجوال، أو رقم الطلب" value="${esc(qs.get('q') || '')}" autofocus></div><div id="sr"></div>`;
+  const run = async () => {
+    const q = $('#sq').value.trim();
+    if (q.length < 2) { $('#sr').innerHTML = '<div class="card empty">ابدأ بكتابة حرفين أو رقمين على الأقل</div>'; return; }
+    const rows = await GET('/api/px/search?q=' + encodeURIComponent(q));
+    $('#sr').innerHTML = rows.length ? rows.map((x, i) => `<div class="sres">
+      <div class="row"><div><b style="font-size:17px">${esc(x.name || '—')}</b><div class="hint"><span class="mono">${esc(x.mrn)}</span> · <span class="mono">${esc(x.phone || '')}</span>${x.clinic ? ' · ' + esc(x.clinic) : ''}</div></div><span class="spacer"></span>
+        ${x.kind === 'patient' && S.me.role !== 'px' ? `<button class="btn sm" data-p="${x.id}">ملف المريض</button>` : ''}${x.px_case_id && S.me.role !== 'employee' ? `<button class="btn sm primary" data-c="${x.px_case_id}">الحالة لدى تجربة المريض</button>` : ''}</div>
+      <div class="stage ${x.stage.tone}">${ic(x.stage.tone === 'green' ? 'check' : x.stage.tone === 'red' ? 'alert' : 'clock')} ${esc(x.stage.text)}</div>
+      ${x.kind === 'patient' ? `<div class="hint">الموظف المسؤول: <b>${esc(x.assigned_name || 'غير مسند')}</b> · المسؤول الحالي: <b>${esc(x.current_handler)}</b>${x.last_review ? ` · آخر قرار: ${esc(x.last_review.decision)} (${esc(x.last_review.by)} ${fmtTime(x.last_review.at)})` : ''}</div>` : ''}
+      ${x.requests.length ? `<div class="section-title">الطلبات</div><ul class="timeline" style="background:var(--panel-2)">${x.requests.map((r) => `<li class="click" data-r="${r.id}" style="cursor:pointer"><span class="mono">${esc(r.ref)}</span> · ${esc(r.type_label)} <span class="badge ${REQ_BADGE[r.status]}">${esc(r.status_label)}</span>${r.delivery_label ? ` <span class="badge b-blue">${esc(r.delivery_label)}</span>` : ''}<br><small>${fmtTime(r.created_at)}</small></li>`).join('')}</ul>` : ''}
+      </div>`).join('') : '<div class="card empty">لا توجد نتائج</div>';
+    $$('[data-p]', $('#sr')).forEach((b) => b.onclick = () => openPatient(+b.dataset.p, run));
+    $$('[data-c]', $('#sr')).forEach((b) => b.onclick = () => openCase(+b.dataset.c, run));
+    $$('[data-r]', $('#sr')).forEach((b) => b.onclick = () => { if (S.me.role === 'px') return; openRequest(+b.dataset.r, run); });
+  };
+  $('#sq').addEventListener('input', debounce(run, 300));
+  run();
+};
+
+async function openCase(cid, after) {
+  const d = await guard(() => GET('/api/px/cases/' + cid));
+  const c = d.case, p = d.patient;
+  const canAct = ['admin', 'px'].includes(S.me.role) && !c.closed_at;
+  const box = el(`<div>
+    <div class="grid g2">
+      <div><dl class="kv">
+        <dt>رقم الملف</dt><dd><span class="mono">${esc(p.mrn)}</span>${copyBtn(p.mrn)}</dd>
+        <dt>الاسم</dt><dd>${esc(p.name)}</dd>
+        <dt>الجوال</dt><dd><span class="mono">${esc(p.phone || '—')}</span>${p.phone ? copyBtn(p.phone, 'الجوال') : ''}</dd>
+        <dt>جوال إضافي</dt><dd><span class="mono">${esc(p.phone2 || '—')}</span>${p.phone2 ? copyBtn(p.phone2) : ''}</dd>
+        <dt>العنوان الوطني</dt><dd><span class="mono">${esc(p.address || '—')}</span></dd>
+        <dt>المدينة</dt><dd>${esc(p.city || '—')}</dd>
+        <dt>الحي</dt><dd>${esc(p.district || '—')}</dd>
+        <dt>العيادة</dt><dd>${esc(p.clinic || '—')}</dd>
+        <dt>الموظف الأصلي</dt><dd>${esc(p.assigned_name || '—')} <span class="hint">(يعود إليه بعد المعالجة)</span></dd>
+      </dl>${['admin', 'px'].includes(S.me.role) ? '<button class="btn sm" data-a="edit" style="margin-top:10px">تصحيح بيانات التواصل والعنوان</button>' : ''}</div>
+      <div>
+        <div class="row" style="margin-bottom:8px"><span class="badge ${{ not_eligible: 'b-red', no_rx: 'b-purple', wrong_data: 'b-amber' }[c.reason]}">${esc(c.reason_label)}</span>
+          <span class="badge ${PX_BADGE[c.status]}">${esc(c.status_label)}</span></div>
+        ${c.next_date ? `<p style="margin:4px 0">تاريخ الاستحقاق القادم: ${fmtDate(c.next_date)}</p>` : ''}
+        ${c.wrong_field ? `<p style="margin:4px 0">الحقل الخاطئ: <b>${esc(c.wrong_field)}</b> — ${esc(c.correction)}</p>` : ''}
+        ${c.pharmacist_note ? `<div class="note-internal" style="margin:8px 0">${esc(c.pharmacist_note)}</div>` : ''}
+        ${c.patient_note ? `<div class="note-patient" style="margin:8px 0">${esc(c.patient_note)}</div>` : ''}
+        <p class="hint">أحالها ${esc(c.created_by_name || '')} · ${fmtTime(c.created_at)}${c.closed_at ? ` · أُغلقت ${fmtTime(c.closed_at)} بواسطة ${esc(c.closed_by_name || '')}` : ''}</p>
+      </div></div>
+    ${canAct ? `<div class="sep"></div><b>رسالة واتساب للمريض</b> <span class="hint">— تعدّل قبل الإرسال، ولا تتضمن الملاحظة الداخلية</span>
+      <textarea id="msg" rows="6" style="margin-top:6px">${esc(d.message)}</textarea>
+      <div class="row" style="margin-top:8px">
+        <button class="btn wa" data-a="wa" ${p.phone ? '' : 'disabled'}>فتح واتساب (الجوال)</button>
+        ${p.phone2 ? '<button class="btn wa" data-a="wa2">واتساب (الجوال الإضافي)</button>' : ''}
+        <button class="btn sm" data-a="reset">استرجاع النص الافتراضي</button><button class="btn sm" data-copy-msg>نسخ الرسالة</button></div>
+      <div class="sep"></div><b>تسجيل نتيجة التواصل</b>
+      <div class="grid g3" style="margin-top:8px"><select id="res"><option value="sent">تم إرسال الرسالة</option><option value="replied">رد المريض</option><option value="no_answer">لم يرد</option><option value="called">اتصال هاتفي</option><option value="wrong_number">رقم غير صحيح</option><option value="other">أخرى</option></select>
+        <select id="nst"><option value="">الحالة تلقائيًا</option><option value="contacting">جارٍ التواصل</option><option value="awaiting">بانتظار رد المريض</option></select>
+        <button class="btn primary" data-a="log">تسجيل</button></div>
+      <input type="text" id="lnote" placeholder="ملاحظة على التواصل (اختياري)" style="width:100%;margin-top:8px">
+      <div class="sep"></div>
+      <div class="row"><input type="text" id="cnote" placeholder="ملاحظة الإغلاق" style="flex:1">
+        <button class="btn green" data-a="close">${c.reason === 'not_eligible' ? 'تمت المعالجة' : 'تمت المعالجة وإعادة للمراجعة'}</button>
+        ${c.reason === 'not_eligible' ? '<button class="btn" data-a="early">إعادة مبكرة للمراجعة</button>' : ''}
+        <button class="btn danger" data-a="unreach">تعذر التواصل</button></div>
+      <p class="hint">${c.reason === 'not_eligible' ? 'غير المستحق يعود تلقائيًا للصيدلي قبل موعده القادم بالأيام المحددة، ولا يُعتمد مستحقًا تلقائيًا.' : 'بعد تصحيح البيانات أو تحديث الوصفة يعود المريض لقائمة الصيدلي اليوم، والقرار يبقى للصيدلي.'}</p>` : ''}
+    ${!c.closed_at || d.contacts.length ? `<div class="sep"></div><b>سجل التواصل</b>${d.contacts.length ? `<ul class="timeline">${d.contacts.map((x) => `<li><b>${esc(x.result)}</b> ${x.note ? '· ' + esc(x.note) : ''}<br><small>${esc(x.by_name)} · ${fmtTime(x.at)}</small></li>`).join('')}</ul>` : '<p class="hint">لا يوجد تواصل مسجل</p>'}` : ''}
+    ${d.history.length ? `<div class="sep"></div><b>سجل تعديل البيانات</b><ul class="timeline">${d.history.map((h) => `<li>${esc(h.field_label)}: <s class="hint">${esc(h.old_value || '—')}</s> ← ${esc(h.new_value || '—')}<br><small>${esc(h.by_name)} · ${fmtTime(h.at)}</small></li>`).join('')}</ul>` : ''}
+  </div>`);
+  const m = modal(`حالة تجربة المريض — ${esc(p.name)}`, box, { wide: true });
+  const refresh = () => { m.close(); openCase(cid, after); after && after(); refreshCounts(); };
+  const waLink = (ph) => { let n = (ph || '').replace(/\D/g, ''); if (n.startsWith('05')) n = '966' + n.slice(1); return `https://wa.me/${n}?text=${encodeURIComponent($('#msg', box).value)}`; };
+  $$('[data-a]', box).forEach((b) => b.onclick = async () => {
+    const a = b.dataset.a;
+    try {
+      if (a === 'edit') patientForm(p, refresh);
+      if (a === 'wa' || a === 'wa2') {
+        window.open(waLink(a === 'wa' ? p.phone : p.phone2), '_blank', 'noopener');
+        toast('بعد الإرسال سجّل نتيجة التواصل');
+      }
+      if (a === 'reset') $('#msg', box).value = d.default_message;
+      if (a === 'log') { await POST(`/api/px/cases/${cid}/contact`, { result: $('#res', box).value, status: $('#nst', box).value, message: $('#msg', box).value, note: $('#lnote', box).value }); toast('تم تسجيل التواصل'); refresh(); }
+      if (a === 'close') { await POST(`/api/px/cases/${cid}/close`, { note: $('#cnote', box).value, return_to_review: c.reason !== 'not_eligible' }); toast('تمت المعالجة'); refresh(); }
+      if (a === 'early') {
+        if (!(await confirmBox('المريض غير مستحق حتى تاريخه القادم. إعادته الآن للصيدلي تعني مراجعة مبكرة. متابعة؟', 'إعادة الآن'))) return;
+        await POST(`/api/px/cases/${cid}/close`, { note: $('#cnote', box).value, return_to_review: true, confirm_early: true }); toast('أعيد للمراجعة'); refresh();
+      }
+      if (a === 'unreach') { await POST(`/api/px/cases/${cid}/status`, { status: 'unreachable', note: $('#cnote', box).value }); toast('تم التحديث'); refresh(); }
+    } catch (e) { toast(e.message, true); }
+  });
+  const cm = $('[data-copy-msg]', box); if (cm) cm.onclick = () => copyText($('#msg', box).value, 'الرسالة');
+}
+
+// ============================================================ طلبات المرضى
+VIEWS.requests = async (qs) => {
+  const admin = S.me.role === 'admin';
+  const pg = page('طلبات المرضى', 'الواردة من بوابة المريض — تُسند تلقائيًا لموظف المريض');
+  const f = Object.fromEntries(qs.entries());
+  pg.innerHTML = `<div class="filters" id="flt"><input type="search" name="q" placeholder="بحث بالمرجع أو رقم الملف أو الاسم">
+    <select name="type"><option value="">كل الأنواع</option>${Object.entries({ delivery: 'طلب توصيل علاج', shortage: 'علاج ناقص / لم يصل', complaint: 'تواصل / شكوى' }).map(([k, v]) => `<option value="${k}" ${f.type === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+    <select name="status"><option value="open">المفتوحة</option>${Object.entries({ new: 'جديد', in_progress: 'قيد المعالجة', needs_info: 'يحتاج استكمال بيانات', done: 'مكتمل', rejected: 'مغلق/مرفوض' }).map(([k, v]) => `<option value="${k}" ${f.status === k ? 'selected' : ''}>${v}</option>`).join('')}<option value="all">الكل</option></select>
+    ${admin ? `<select name="assigned"><option value="">كل الموظفين</option><option value="none" ${f.assigned === 'none' ? 'selected' : ''}>غير مسند / غير مرتبط</option>${userOptions(f.assigned, (u) => u.role === 'employee')}</select>` : ''}</div><div id="list"></div>`;
+  const load = async () => {
+    const p = new URLSearchParams();
+    $$('#flt [name]').forEach((i) => i.value && p.set(i.name, i.value));
+    const rows = await GET('/api/requests?' + p);
+    $('#list').innerHTML = rows.length ? `<div class="tw"><table class="t"><thead><tr><th>المرجع</th><th>النوع</th><th>رقم الملف</th><th>المريض</th><th>التفاصيل</th><th>الحالة</th><th>التاريخ</th>${admin ? '<th>الموظف</th>' : ''}</tr></thead><tbody>
+      ${rows.map((r) => `<tr class="click" data-id="${r.id}"><td class="mono">${esc(r.ref)}</td><td>${esc(r.type_label)} ${r.has_attachment ? '📎' : ''}</td><td class="mono">${esc(r.mrn)}</td>
+        <td>${esc(r.patient_name || '')} ${!r.patient_id ? '<span class="badge b-red">غير مسجل</span>' : ''} ${r.possible_duplicate ? '<span class="badge b-amber">مكرر محتمل</span>' : ''}</td>
+        <td class="hint">${esc(r.details || '')}</td><td><span class="badge ${REQ_BADGE[r.status]}">${esc(r.status_label)}</span>${r.delivery_label ? ` <span class="badge b-blue">${esc(r.delivery_label)}</span>` : ''}</td>
+        <td>${fmtTime(r.created_at)}</td>${admin ? `<td>${esc(r.assigned_name || '—')}</td>` : ''}</tr>`).join('')}</tbody></table></div>`
+      : '<div class="card empty">لا توجد طلبات</div>';
+    $$('#list tr[data-id]').forEach((tr) => tr.onclick = () => openRequest(+tr.dataset.id, load));
+  };
+  $$('#flt [name]').forEach((i) => i.addEventListener('input', debounce(load, 300)));
+  await load();
+};
+
+async function openRequest(rid, after) {
+  const r = await guard(() => GET('/api/requests/' + rid));
+  const admin = S.me.role === 'admin';
+  const p = r.patient;
+  const box = el(`<div>
+    <div class="row" style="margin-bottom:10px"><span class="mono">${esc(r.ref)}</span><b>${esc(r.type_label)}</b>
+      <span class="badge ${REQ_BADGE[r.status]}">${esc(r.status_label)}</span>${r.possible_duplicate ? '<span class="badge b-amber">مكرر محتمل خلال 3 أيام</span>' : ''}<span class="hint">${fmtTime(r.created_at)}</span></div>
+    <div class="grid g2"><div>
+      <dl class="kv"><dt>رقم الملف</dt><dd><span class="mono">${esc(r.mrn)}</span>${copyBtn(r.mrn)}</dd>
+      ${p ? `<dt>المريض</dt><dd><a href="#" data-a="patient">${esc(p.name)}</a></dd><dt>الموظف المسند</dt><dd>${esc(r.assigned_name || 'غير مسند')}</dd>`
+        : '<dt>الملف</dt><dd><span class="badge b-red">رقم الملف غير مسجل في النظام</span></dd>'}
+      ${r.related ? `<dt>مرتبط بالطلب</dt><dd><span class="mono">${esc(r.related.ref)}</span> · ${esc((r.related.details || '').slice(0, 80))}</dd>` : ''}
+      </dl>
+      ${r.type !== 'delivery' ? `<div class="sep"></div><dl class="kv"><dt>الاسم</dt><dd>${esc(r.full_name || '—')}</dd><dt>الجوال</dt><dd><span class="mono">${esc(r.phone || '—')}</span>${r.phone ? copyBtn(r.phone, 'الجوال') : ''}</dd>
+        ${r.phone2 ? `<dt>جوال إضافي</dt><dd><span class="mono">${esc(r.phone2)}</span></dd>` : ''}${r.short_address ? `<dt>العنوان الوطني</dt><dd><span class="mono">${esc(r.short_address)}</span>${copyBtn(r.short_address, 'العنوان')}</dd>` : ''}
+        ${r.subtype ? `<dt>النوع</dt><dd><span class="badge ${r.subtype === 'شكوى' ? 'b-red' : 'b-blue'}">${esc(r.subtype)}</span></dd>` : ''}</dl>` : ''}
+      ${r.details ? `<div class="sep"></div><b>${r.type === 'complaint' ? 'رسالة المريض' : 'تفاصيل الطلب'}</b><p style="white-space:pre-wrap;margin:6px 0">${esc(r.details)}</p>` : ''}
+      ${r.wa_reply ? `<a class="btn wa sm" href="${esc(r.wa_reply)}" target="_blank" rel="noopener">الرد عبر واتساب</a>` : ''}
+      ${r.attachment ? `<a class="btn sm" href="/api/requests/${r.id}/attachment" target="_blank">📎 فتح المرفق</a>` : ''}
+      ${r.attachment_url && /\.(png|jpe?g|gif|webp|heic|heif)$/i.test(r.attachment_name || '') ? `<img src="${esc(r.attachment_url)}" alt="المرفق" style="display:block;max-width:100%;max-height:320px;border-radius:12px;margin-top:10px">` : ''}
+    </div><div>
+      ${r.type === 'delivery' ? `<b>بيانات التوصيل</b><dl class="kv" style="margin-top:6px">
+        <dt>الاسم الرباعي</dt><dd>${esc(r.full_name)} ${copyBtn(r.full_name, 'الاسم')}</dd>
+        <dt>الجوال</dt><dd><span class="mono">${esc(r.phone)}</span>${copyBtn(r.phone, 'الجوال')}</dd>
+        <dt>جوال إضافي</dt><dd><span class="mono">${esc(r.phone2 || '—')}</span></dd>
+        <dt>العيادة</dt><dd>${esc(r.clinic || '—')}</dd>
+        <dt>العنوان المختصر</dt><dd><span class="mono">${esc(r.short_address)}</span>${copyBtn(r.short_address, 'العنوان')}</dd></dl>
+        <button class="btn sm" data-copy="${esc([r.full_name, r.phone, r.phone2, r.short_address, r.clinic].filter(Boolean).join('\n'))}" data-label="بيانات التوصيل">نسخ بيانات التوصيل</button>
+        ${p ? '<button class="btn sm" data-a="apply">اعتماد البيانات في ملف المريض</button>' : ''}
+        <label class="f" style="margin-top:12px"><span>حالة التوصيل</span><select id="dst">${Object.entries({ new: 'جديد', coordinating: 'قيد التنسيق', ready: 'جاهز للتوصيل', out: 'خرج للتوصيل', delivered: 'تم التسليم', failed: 'متعذر' }).map(([k, v]) => `<option value="${k}" ${r.delivery_status === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>` : ''}
+      ${r.type === 'shortage' ? `<b>مراجعة النقص</b> <span class="hint">لا يتحول البلاغ تلقائيًا إلى صرف جديد</span>
+        <label class="f" style="margin-top:6px"><span>ما طُلب</span><input type="text" id="s1" value="${esc(r.shortage_requested || '')}"></label>
+        <label class="f"><span>ما صُرف</span><input type="text" id="s2" value="${esc(r.shortage_dispensed || '')}"></label>
+        <label class="f"><span>ما استُلم</span><input type="text" id="s3" value="${esc(r.shortage_received || '')}"></label>
+        <label class="f"><span class="req">الإجراء المتخذ</span><textarea id="s4" rows="2">${esc(r.shortage_action || '')}</textarea></label>` : ''}
+    </div></div>
+    <div class="sep"></div>
+    <div class="grid g2"><label class="f"><span>حالة الطلب</span><select id="st">${Object.entries({ new: 'جديد', in_progress: 'قيد المعالجة', needs_info: 'يحتاج استكمال بيانات', done: 'مكتمل', rejected: 'مغلق/مرفوض' }).map(([k, v]) => `<option value="${k}" ${r.status === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+      <label class="f" id="niBox"><span>المطلوب من المريض (يظهر له في البوابة)</span><input type="text" id="ni" value="${esc(r.needs_info_note || '')}"></label></div>
+    <label class="f"><span>ملاحظة داخلية</span><textarea id="sn" rows="2">${esc(r.staff_note || '')}</textarea></label>
+    ${r.wa_link ? `<a class="btn wa sm" href="${esc(r.wa_link)}" target="_blank" rel="noopener">إرسال طلب الاستكمال عبر واتساب</a>` : ''}
+    ${admin ? `<div class="sep"></div><div class="row">${!p ? `<input type="text" id="lmrn" placeholder="ربط برقم ملف موجود" dir="ltr"><button class="btn sm" data-a="link">ربط</button>${r.full_name ? '<button class="btn sm" data-a="create">إنشاء ملف جديد من الطلب</button>' : ''}` : ''}
+      <span class="spacer"></span><select id="ato"><option value="">غير مسند</option>${userOptions(r.assigned_to)}</select><button class="btn sm" data-a="assign">إسناد الطلب</button></div>` : ''}
+    ${r.log.length ? `<div class="sep"></div><b>السجل</b><ul class="timeline">${r.log.map((l) => `<li>${esc(l.action)} ${l.details ? `<span class="hint">${esc(fmtDetails(l.details))}</span>` : ''}<br><small>${esc(l.user_name)} · ${fmtTime(l.at)}</small></li>`).join('')}</ul>` : ''}
+    <div class="err"></div></div>`);
+  const m = modal('طلب مريض', box, { wide: true, footer: '<button class="btn primary" data-save>حفظ</button>' });
+  const refresh = () => { m.close(); openRequest(rid, after); after && after(); refreshCounts(); };
+  $('[data-save]', m).onclick = async () => {
+    const b = { status: $('#st', box).value, needs_info_note: $('#ni', box).value, staff_note: $('#sn', box).value };
+    if ($('#dst', box)) b.delivery_status = $('#dst', box).value;
+    if ($('#s1', box)) Object.assign(b, { shortage_requested: $('#s1', box).value, shortage_dispensed: $('#s2', box).value, shortage_received: $('#s3', box).value, shortage_action: $('#s4', box).value });
+    try { await PATCH('/api/requests/' + rid, b); toast('تم الحفظ'); refresh(); } catch (e) { $('.err', box).textContent = e.message; }
+  };
+  $$('[data-a]', box).forEach((b) => b.onclick = async (e) => {
+    e.preventDefault();
+    const a = b.dataset.a;
+    try {
+      if (a === 'patient') { m.close(); openPatient(p.id, after); }
+      if (a === 'apply') { const res = await POST(`/api/requests/${rid}/apply`); toast(res.changed.length ? 'تم تحديث ملف المريض (حُفظت القيم السابقة)' : 'البيانات مطابقة للملف'); refresh(); }
+      if (a === 'link') { await POST(`/api/requests/${rid}/link`, { mrn: $('#lmrn', box).value }); toast('تم الربط'); refresh(); }
+      if (a === 'create') { await POST(`/api/requests/${rid}/create-patient`); toast('تم إنشاء الملف — أسنده من صفحة التوزيع'); refresh(); }
+      if (a === 'assign') { await POST(`/api/requests/${rid}/assign`, { to_user: $('#ato', box).value }); toast('تم الإسناد'); refresh(); }
+    } catch (err) { toast(err.message, true); }
+  });
+}
+
+// ============================================================ توزيع المرضى
+VIEWS.distribute = async () => {
+  const pg = page('توزيع المرضى', 'كل مريض يُسند لموظف واحد ولا يظهر لغيره من الموظفين');
+  const d = await GET('/api/dashboard');
+  const emps = d.employees.filter((e) => e.active);
+  pg.innerHTML = `<div class="grid g2">
+    <div class="card"><h3>المرضى غير المسندين: <span class="num">${d.totals.unassigned}</span></h3>
+      <p class="hint">التوزيع بالتساوي يقسم العدد على الموظفين. التوزيع حسب الحالات المفتوحة يعطي الموظف الأقل حملًا أولًا.</p>
+      <div class="row"><button class="btn primary" id="auto" ${d.totals.unassigned ? '' : 'disabled'}>توزيع تلقائي</button><a class="btn" href="#/patients?assigned=none">اختيار يدوي من القائمة</a></div></div>
+    <div class="card"><h3>نقل مسؤولية مرضى بين الموظفين</h3>
+      <div class="grid g2"><label class="f"><span>من</span><select id="from">${userOptions('', (u) => u.role === 'employee')}</select></label>
+      <label class="f"><span>إلى</span><select id="to"><option value="auto">توزيع على البقية تلقائيًا</option>${userOptions('')}</select></label></div>
+      <label class="f"><span>نطاق النقل</span><select id="scope"><option value="all">جميع مرضاه</option><option value="open">الحالات المفتوحة فقط (بانتظار المراجعة/المتأخرة)</option></select></label>
+      <label class="f"><span>السبب</span><input type="text" id="rsn" placeholder="مثال: إجازة"></label>
+      <button class="btn primary" id="move">نقل</button></div></div>
+    <div class="card" style="margin-top:14px"><h3>الحمل الحالي</h3><div class="tw"><table class="t"><thead><tr><th>الموظف</th><th>المسند</th><th>بانتظار المراجعة</th><th>متأخر</th><th>طلبات مفتوحة</th><th>لدى تجربة المريض</th><th></th></tr></thead><tbody>
+      ${emps.map((e) => `<tr><td>${esc(e.name)}</td><td class="num">${e.patients}</td><td class="num">${e.due}</td><td class="num">${e.overdue}</td><td class="num">${e.open_requests}</td><td class="num">${e.at_px}</td><td><a class="btn sm" href="#/patients?assigned=${e.id}">عرض مرضاه</a></td></tr>`).join('') || '<tr><td colspan="7" class="empty">لا يوجد موظفون نشطون</td></tr>'}</tbody></table></div></div>`;
+  $('#auto').onclick = () => autoDistributeDialog(null, () => VIEWS.distribute());
+  $('#move').onclick = () => guard(async () => {
+    const from = $('#from').value, to = $('#to').value;
+    if (!from) return toast('اختر الموظف', true);
+    if (from === to) return toast('اختر موظفًا مختلفًا', true);
+    const qp = new URLSearchParams({ assigned: from }); if ($('#scope').value === 'open') qp.set('due', 'queue');
+    const ids = await GET('/api/patients/ids?' + qp);
+    if (!ids.length) return toast('لا يوجد مرضى للنقل', true);
+    if (!(await confirmBox(`نقل <b>${ids.length}</b> مريض؟`, 'نقل'))) return;
+    if (to === 'auto') {
+      const users = emps.filter((e) => String(e.id) !== from).map((e) => e.id);
+      const r = await POST('/api/assign/auto', { mode: 'load', user_ids: users, scope: 'selected', patient_ids: ids });
+      toast('تم: ' + Object.entries(r.result).map(([n, c]) => `${n} ${c}`).join('، '));
+    } else {
+      const r = await POST('/api/assign', { patient_ids: ids, to_user: to, reason: $('#rsn').value || 'نقل مسؤولية' });
+      toast(`تم نقل ${r.moved} مريض`);
+    }
+    refreshCounts(); VIEWS.distribute();
+  });
+};
+
+// ============================================================ الاستيراد
+VIEWS.import = async () => {
+  const pg = page('استيراد Excel', 'يقرأ النظام لون كل صف ويحوّله إلى حالة، مع معاينة قبل الاعتماد', '<button class="btn" id="sample">تنزيل ملف نموذجي</button>');
+  $('#sample').onclick = () => guard(() => download('GET', '/api/import/sample'));
+  pg.innerHTML = `<div class="card"><div class="row"><input type="file" id="file" accept=".xlsx,.xlsm"><label class="check"><input type="checkbox" id="useFont" checked> قراءة لون الخط إذا لم يكن للخلية تعبئة</label></div>
+    <p class="hint">يدعم xlsx. الألوان المقروءة هي تعبئة الخلايا (وليست التنسيق الشرطي). إذا كان الملف xls قديمًا احفظه بصيغة xlsx أولًا.</p></div><div id="imp"></div>`;
+  let st = null;
+  $('#file').onchange = async () => {
+    const f = $('#file').files[0]; if (!f) return;
+    const fd = new FormData(); fd.append('file', f); fd.append('use_font', $('#useFont').checked ? '1' : '0');
+    $('#imp').innerHTML = '<div class="card empty">جارٍ قراءة الملف…</div>';
+    try {
+      st = await api('POST', '/api/import/parse', fd);
+      st.date_mode = 'due'; st.interval = 30;
+      if (st.analysis.past_dates > st.analysis.valid / 2) {
+        st.date_mode = 'last';
+        st.analysis = await POST('/api/import/preview', { token: st.token, mapping: st.mapping, color_actions: st.color_actions, date_mode: 'last', interval: 30 });
+      }
+      render();
+    } catch (e) { $('#imp').innerHTML = `<div class="card err">${esc(e.message)}</div>`; }
+  };
+  const mappingSel = (field) => `<select data-map="${field}"><option value="">— غير موجود —</option>${st.headers.map((h, i) => `<option value="${i}" ${st.mapping[field] === i ? 'selected' : ''}>${esc(h)}</option>`).join('')}</select>`;
+  const ACTIONS = { not_eligible: 'غير مستحق', eligible: 'مستحق', out_of_city: 'خارج المدينة', no_rx: 'لا توجد وصفة فعّالة', ignore: 'تجاهل اللون (بانتظار المراجعة)', skip: 'استبعاد الصف' };
+  const render = () => {
+    const a = st.analysis;
+    const colorsPresent = Object.keys(a.colors).filter((c) => c !== 'none');
+    $('#imp').innerHTML = `
+      <div class="grid g2" style="margin-top:14px">
+        <div class="card"><h3>1. ربط الأعمدة</h3>${st.sheets.length > 1 ? `<label class="f"><span>الورقة</span><select id="sheet">${st.sheets.map((s) => `<option ${s === st.sheet ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></label>` : ''}
+          <p class="hint">صف العناوين المكتشف: ${st.header_row}</p>
+          <div class="grid g2">${Object.entries(st.fields).map(([k, v]) => `<label class="f"><span class="${k === 'mrn' ? 'req' : ''}">${v}</span>${mappingSel(k)}</label>`).join('')}</div></div>
+        <div class="card"><h3>2. معنى الألوان</h3>
+          ${colorsPresent.length ? colorsPresent.map((c) => `<div class="row" style="margin-bottom:8px"><span class="dot" style="background:${COLOR_HEX[c]}"></span><b style="width:70px">${esc(st.color_labels[c])}</b><span class="hint num">${a.colors[c]} صف</span><span class="spacer"></span>
+            <select data-color="${c}">${Object.entries(ACTIONS).map(([k, v]) => `<option value="${k}" ${(st.color_actions[c] || 'ignore') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div>`).join('') : '<p class="hint">لا توجد ألوان في الملف</p>'}
+          <p class="hint">بدون لون: ${a.colors.none || 0} صف → بانتظار المراجعة</p>
+          <label class="check"><input type="checkbox" id="saveColors" checked> حفظ معاني الألوان للاستيرادات القادمة</label>
+          <div class="sep"></div><h3>3. معنى التاريخ في الملف</h3>
+          ${a.past_dates ? `<p class="hint" style="color:var(--amber)">${a.past_dates} من التواريخ في الماضي — غالبًا تمثل تاريخ آخر صرف.</p>` : ''}
+          <div class="row"><select id="dmode"><option value="due" ${st.date_mode === 'due' ? 'selected' : ''}>موعد المراجعة/الاستحقاق نفسه</option><option value="last" ${st.date_mode === 'last' ? 'selected' : ''}>تاريخ آخر صرف + مدة الصرف</option></select>
+          <span ${st.date_mode === 'last' ? '' : 'hidden'} id="ivBox">المدة <input type="number" id="iv" min="1" max="365" value="${st.interval || 30}" style="width:80px"> يوم</span></div>
+          <div class="sep"></div><h3>4. خيارات</h3>
+          <label class="f"><span>المرضى الموجودون مسبقًا (${a.existing})</span><select id="existing"><option value="skip">تجاهلهم</option><option value="update">تحديث بياناتهم (مع حفظ القيم السابقة)</option></select></label>
+          <label class="check"><input type="checkbox" id="updDates"> تحديث تاريخ المراجعة للموجودين</label><br>
+          <label class="check"><input type="checkbox" id="refer"> إحالة غير المستحقين/بلا وصفة المستوردين إلى تجربة المريض</label>
+          <label class="f" style="margin-top:10px"><span>إسناد المرضى الجدد</span><select id="assign"><option value="">بدون إسناد (أوزعهم لاحقًا)</option><option value="equal">توزيع بالتساوي على الموظفين</option><option value="load">توزيع حسب الحالات المفتوحة</option>${userOptions('').replace(/<option value="/g, '<option value="')}</select></label>
+        </div></div>
+      <div class="card" style="margin-top:14px"><h3>5. المعاينة</h3>
+        <div class="kpis"><div class="kpi"><div class="v">${a.total}</div><div class="l">صفوف الملف</div></div><div class="kpi ok"><div class="v">${a.new}</div><div class="l">مرضى جدد</div></div>
+          <div class="kpi"><div class="v">${a.existing}</div><div class="l">موجودون مسبقًا</div></div><div class="kpi ${a.errors.length ? 'warn' : ''}"><div class="v">${a.errors.length}</div><div class="l">أخطاء (لن تُستورد)</div></div>
+          <div class="kpi amber"><div class="v">${a.warnings.length}</div><div class="l">تنبيهات</div></div></div>
+        <p class="hint">التوزيع: بانتظار المراجعة ${a.counts.pending || 0} · غير مستحق ${a.counts.not_eligible || 0} · مستحق ${a.counts.eligible || 0} · لا وصفة ${a.counts.no_rx || 0} · خارج المدينة ${a.counts.out_of_city || 0} · لا يرغب بالشحن الدوري ${a.counts.not_periodic || 0}${a.counts.skipped ? ' · مستبعد ' + a.counts.skipped : ''}</p>
+        ${a.errors.length ? `<details open><summary class="err">الأخطاء (${a.errors.length})</summary><ul>${a.errors.slice(0, 100).map((e) => `<li>صف ${e.row}: ${esc(e.msg)}</li>`).join('')}</ul></details>` : ''}
+        ${a.warnings.length ? `<details><summary>التنبيهات (${a.warnings.length})</summary><ul>${a.warnings.slice(0, 200).map((e) => `<li>صف ${e.row}: ${esc(e.msg)}</li>`).join('')}</ul></details>` : ''}
+        <div class="tw" style="max-height:420px;margin-top:10px"><table class="t"><thead><tr><th>صف</th><th>اللون</th><th>رقم الملف</th><th>الاسم</th><th>الجوال</th><th>العيادة</th><th>المدينة</th><th>العنوان</th><th>التاريخ</th><th>الحالة بعد الاستيراد</th><th></th></tr></thead><tbody>
+          ${a.preview.map((r) => `<tr><td class="num">${r.row}</td><td><span class="dot" style="background:${r.hex ? '#' + r.hex : '#fff'}"></span></td><td class="mono">${esc(r.mrn)}</td><td>${esc(r.name)}</td><td class="mono">${esc(r.phone)}</td><td>${esc(r.clinic)}</td><td>${esc(r.city)}</td><td class="mono">${esc(r.address)}</td><td>${fmtDate(r.review_date)}</td>
+            <td><span class="badge ${STATUS_BADGE[r.status]}">${esc(r.status_label)}</span>${r.out_of_city ? ' <span class="badge b-amber">خارج المدينة</span>' : ''}</td><td>${r.existing ? '<span class="badge">موجود</span>' : ''}${r.warn ? ` <span class="badge b-amber" title="${esc(r.warn)}">!</span>` : ''}</td></tr>`).join('')}</tbody></table></div>
+        ${a.preview.length < a.valid ? `<p class="hint">تعرض أول ${a.preview.length} صف من ${a.valid}</p>` : ''}
+        <div class="row" style="margin-top:12px"><button class="btn primary" id="commit" ${a.valid ? '' : 'disabled'}>اعتماد الاستيراد (${a.valid} صف)</button></div></div>`;
+    const params = () => {
+      const mapping = {}; $$('[data-map]').forEach((s) => { if (s.value !== '') mapping[s.dataset.map] = +s.value; });
+      const color_actions = { ...st.color_actions }; $$('[data-color]').forEach((s) => color_actions[s.dataset.color] = s.value);
+      const dm = $('#dmode'); const iv = $('#iv');
+      return { token: st.token, mapping, color_actions, date_mode: dm ? dm.value : st.date_mode, interval: iv ? +iv.value : st.interval };
+    };
+    const repreview = async () => {
+      const p = params();
+      st.mapping = p.mapping; st.color_actions = p.color_actions; st.date_mode = p.date_mode; st.interval = p.interval;
+      st.analysis = await guard(() => POST('/api/import/preview', p));
+      render();
+    };
+    $$('[data-map],[data-color],#dmode,#iv').forEach((s) => s.onchange = repreview);
+    const sh = $('#sheet');
+    if (sh) sh.onchange = async () => { const r = await guard(() => POST('/api/import/sheet', { token: st.token, sheet: sh.value, use_font: $('#useFont').checked })); Object.assign(st, r); render(); };
+    $('#commit').onclick = () => guard(async () => {
+      if (!(await confirmBox(`استيراد ${a.valid} صف؟`, 'استيراد'))) return;
+      const r = await POST('/api/import/commit', { ...params(), existing: $('#existing').value, update_dates: $('#updDates').checked, refer_not_eligible: $('#refer').checked,
+        assign_mode: $('#assign').value, save_colors: $('#saveColors').checked });
+      $('#imp').innerHTML = `<div class="card" style="margin-top:14px"><h3>تم الاستيراد ✔</h3><ul><li>مرضى جدد: <b>${r.created}</b></li><li>تم تحديثهم: <b>${r.updated}</b></li><li>تم تجاهلهم (موجودون): <b>${r.skipped}</b></li><li>صفوف بها أخطاء: <b>${r.errors}</b></li><li>إحالات لتجربة المريض: <b>${r.referred}</b></li>
+        ${r.distribution ? `<li>التوزيع: ${Object.entries(r.distribution).map(([n, c]) => `${esc(n)} ${c}`).join('، ')}</li>` : ''}</ul><a class="btn primary" href="#/patients">عرض المرضى</a> <a class="btn" href="#/distribute">توزيع المرضى</a></div>`;
+      $('#file').value = ''; refreshCounts();
+    });
+  };
+};
+
+// ============================================================ المستخدمون
+VIEWS.users = async () => {
+  const pg = page('المستخدمون', 'إنشاء الحسابات وإدارتها من المدير فقط — لا يوجد تسجيل ذاتي', '<button class="btn primary" id="newU">+ حساب جديد</button>');
+  const load = async () => {
+    S.users = await GET('/api/users');
+    pg.innerHTML = `<div class="tw"><table class="t"><thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>الصلاحيات</th><th>المرضى المسندون</th><th>آخر دخول</th><th>الحالة</th><th></th></tr></thead><tbody>
+      ${S.users.map((u) => `<tr><td><b>${esc(u.name)}</b></td><td class="mono">${esc(u.username)}</td><td>${esc(u.role_label)}</td>
+        <td>${u.role === 'admin' ? 'كل الصلاحيات' : u.role === 'px' ? 'حالات تجربة المريض' : u.can_review ? '<span class="badge b-brand">صيدلي</span> + موظف' : 'موظف'}</td>
+        <td class="num">${u.role === 'employee' ? u.assigned_count : '—'}</td><td>${u.last_login ? fmtTime(u.last_login) : '<span class="hint">لم يدخل بعد</span>'}${u.must_change_pw ? ' <span class="badge b-amber">كلمة مؤقتة</span>' : ''}</td>
+        <td>${u.active ? '<span class="badge b-green">نشط</span>' : '<span class="badge">معطّل</span>'}</td>
+        <td class="row" style="gap:4px"><button class="btn sm" data-a="edit" data-id="${u.id}">تعديل</button><button class="btn sm" data-a="reset" data-id="${u.id}">كلمة مرور</button>
+          ${u.id !== S.me.id ? (u.active ? `<button class="btn sm danger" data-a="off" data-id="${u.id}">تعطيل</button>` : `<button class="btn sm" data-a="on" data-id="${u.id}">تفعيل</button>`) : ''}
+          <a class="btn sm" href="#/audit?user=${u.id}">السجل</a></td></tr>`).join('')}</tbody></table></div>
+      <p class="hint">تبقى سجلات الموظف محفوظة بعد تعطيل حسابه. يمكن منح دور الصيدلي لأي موظف.</p>`;
+    $$('[data-a]', pg).forEach((b) => b.onclick = () => action(b.dataset.a, S.users.find((u) => u.id === +b.dataset.id)));
+  };
+  const form = (u) => {
+    const isNew = !u; u = u || { role: 'employee' };
+    const f = el(`<form><label class="f"><span class="req">اسم الموظف</span><input type="text" name="name" value="${esc(u.name || '')}"></label>
+      ${isNew ? '<label class="f"><span class="req">اسم المستخدم (إنجليزي)</span><input type="text" name="username" dir="ltr" placeholder="ahmad.s"></label>' : ''}
+      <label class="f"><span>الدور</span><select name="role">${[['employee', 'موظف'], ['px', 'تجربة المريض'], ['admin', 'المدير']].map(([k, v]) => `<option value="${k}" ${u.role === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+      <label class="check"><input type="checkbox" name="can_review" ${u.can_review ? 'checked' : ''}> منح دور الصيدلي (مراجعة الاستحقاق)</label>
+      <p class="hint">الموظف يرى المرضى المسندين إليه فقط. حساب تجربة المريض يستقبل الحالات المحالة تلقائيًا ولا يغيّر قرار الاستحقاق.</p><div class="err"></div></form>`);
+    const m = modal(isNew ? 'حساب جديد' : 'تعديل الحساب', f, { footer: '<button class="btn primary" data-ok>حفظ</button>' });
+    $('[data-ok]', m).onclick = async () => {
+      const b = { name: f.name.value, role: f.role.value, can_review: f.can_review.checked };
+      try {
+        if (isNew) { b.username = f.username.value; const r = await POST('/api/users', b); m.close(); showPassword('تم إنشاء الحساب', b.username, r.temp_password); }
+        else { await PATCH('/api/users/' + u.id, b); m.close(); toast('تم الحفظ'); }
+        load();
+      } catch (e) { $('.err', f).textContent = e.message; }
+    };
+  };
+  const action = async (a, u) => {
+    try {
+      if (a === 'edit') form(u);
+      if (a === 'reset') {
+        if (!(await confirmBox(`إنشاء كلمة مرور مؤقتة جديدة لـ ${esc(u.name)}؟ سيُسجَّل خروجه من كل الأجهزة.`, 'إنشاء'))) return;
+        const r = await POST(`/api/users/${u.id}/reset-password`); showPassword('كلمة مرور مؤقتة جديدة', u.username, r.temp_password);
+      }
+      if (a === 'on') { await POST(`/api/users/${u.id}/activate`); toast('تم التفعيل'); load(); }
+      if (a === 'off') {
+        const n = u.assigned_count || 0;
+        if (u.role === 'employee' && n) {
+          const m = modal(`تعطيل حساب ${esc(u.name)}`, `<p>لديه <b>${n}</b> مريض مسند. اختر إعادة الإسناد:</p>
+            <select id="rt" style="width:100%"><option value="auto">توزيع تلقائي على بقية الموظفين</option>${userOptions('', (x) => x.role === 'employee' && x.active && x.id !== u.id)}</select>`,
+          { footer: '<button class="btn danger" data-ok>تعطيل وإعادة الإسناد</button>' });
+          $('[data-ok]', m).onclick = () => guard(async () => { await POST(`/api/users/${u.id}/deactivate`, { reassign: $('#rt', m).value }); m.close(); toast('تم تعطيل الحساب وإعادة الإسناد'); load(); refreshCounts(); });
+        } else {
+          if (!(await confirmBox(`تعطيل حساب ${esc(u.name)}؟`, 'تعطيل', true))) return;
+          await POST(`/api/users/${u.id}/deactivate`, {}); toast('تم التعطيل'); load();
+        }
+      }
+    } catch (e) { toast(e.message, true); }
+  };
+  $('#newU').onclick = () => form(null);
+  await load();
+};
+
+// ============================================================ السجل
+VIEWS.audit = async (qs) => {
+  const pg = page('سجل الإجراءات', 'كل إجراء محفوظ باسم منفذه ووقته');
+  pg.innerHTML = `<div class="filters" id="flt"><select name="user"><option value="">كل المستخدمين</option>${userOptions(qs.get('user'), () => true)}</select>
+    <input type="date" name="from"><input type="date" name="to"><input type="search" name="q" placeholder="بحث في الإجراءات"></div><div id="list"></div>`;
+  let pageNo = 1;
+  const load = async () => {
+    const p = new URLSearchParams({ page: pageNo });
+    $$('#flt [name]').forEach((i) => i.value && p.set(i.name, i.value));
+    const r = await GET('/api/audit?' + p);
+    $('#list').innerHTML = `<div class="tw"><table class="t"><thead><tr><th>الوقت</th><th>المستخدم</th><th>الإجراء</th><th>رقم الملف</th><th>التفاصيل</th></tr></thead><tbody>
+      ${r.items.map((x) => `<tr ${x.entity === 'patient' && x.entity_id ? `class="click" data-p="${x.entity_id}"` : ''}><td>${fmtTime(x.at)}</td><td>${esc(x.user_name || '')}</td><td>${esc(x.action)}</td><td class="mono">${esc(x.mrn || '')}</td><td class="hint">${esc(fmtDetails(x.details || ''))}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">لا يوجد</td></tr>'}</tbody></table></div>
+      <div class="pager">${r.total} إجراء <button class="btn sm" id="prev" ${pageNo <= 1 ? 'disabled' : ''}>الأحدث</button><button class="btn sm" id="next" ${pageNo * 100 >= r.total ? 'disabled' : ''}>الأقدم</button></div>`;
+    $('#prev').onclick = () => { pageNo--; load(); }; $('#next').onclick = () => { pageNo++; load(); };
+    $$('[data-p]').forEach((tr) => tr.onclick = () => openPatient(+tr.dataset.p));
+  };
+  $$('#flt [name]').forEach((i) => i.addEventListener('input', debounce(() => { pageNo = 1; load(); }, 300)));
+  await load();
+};
+
+// ============================================================ الإعدادات
+VIEWS.settings = async () => {
+  const pg = page('الإعدادات');
+  const s = await GET('/api/settings');
+  const v = s.values;
+  const tpl = v.export_template;
+  const fieldSel = (cur) => {
+    const fixed = cur && cur.startsWith('fixed:');
+    return `<select class="cf">${Object.entries(s.export_fields).map(([k, l]) => `<option value="${k}" ${cur === k ? 'selected' : ''}>${l}</option>`).join('')}<option value="fixed" ${fixed ? 'selected' : ''}>قيمة ثابتة…</option></select>
+      <input type="text" class="cfv" placeholder="القيمة الثابتة" value="${fixed ? esc(cur.slice(6)) : ''}" ${fixed ? '' : 'hidden'}>`;
+  };
+  pg.innerHTML = `<div class="grid g2">
+    <div class="card"><h3>عام</h3>
+      <label class="f"><span>اسم الجهة (يظهر في الواجهة والرسائل)</span><input type="text" id="org" value="${esc(v.org_name)}"></label>
+      <label class="f"><span>الوصف تحت الاسم</span><input type="text" id="orgSub" value="${esc(v.org_sub || '')}"></label>
+      <div class="row" style="margin-bottom:12px"><div class="logo-prev" style="width:56px;height:56px;border-radius:14px;background:var(--brand);overflow:hidden;display:grid;place-items:center;color:#fff;font-weight:700">${v.logo ? `<img src="${esc(v.logo)}" style="width:100%;height:100%;object-fit:contain;background:#fff">` : '℞'}</div>
+        <div><span class="hint">شعار الجهة الرسمي (PNG أو SVG)</span><div class="row" style="margin-top:4px"><input type="file" id="logoFile" accept="image/*" hidden><button class="btn sm" id="logoBtn">رفع الشعار</button>${v.logo ? '<button class="btn sm danger" id="logoRm">إزالة</button>' : ''}</div></div>
+        <span class="spacer"></span><label><span class="hint">لون الهوية</span><br><input type="color" id="brandColor" value="${esc(v.brand_color || '#0B6E73')}" style="width:56px;height:40px;border:none;background:none;padding:0"></label></div>
+      <label class="f"><span>مدة الصرف الافتراضية (يحدد موعد المراجعة القادم لكل مستحق تلقائيًا)</span><input type="number" id="refillDef" min="1" max="365" value="${v.refill_default || 30}"></label>
+      <label class="f"><span>يظهر المريض للصيدلي قبل موعده بعدد أيام</span><input type="number" id="lead" min="0" max="60" value="${v.lead_days}"></label>
+      <label class="f"><span>مدينة الصيدلية (أي مدينة أخرى في الملف تُعلَّم «خارج المدينة» تلقائيًا — اتركها فارغة لتعطيل ذلك)</span><input type="text" id="city" value="${esc(v.home_city)}"></label>
+      <label class="f"><span>مدد الصرف المقترحة للحساب التلقائي (أيام، مفصولة بفواصل)</span><input type="text" id="refill" value="${esc(v.refill_options.join(', '))}" dir="ltr"></label>
+      <label class="f"><span>نطاق مراجعة الصيدلي</span><select id="scope"><option value="assigned" ${v.pharmacist_scope === 'assigned' ? 'selected' : ''}>يراجع المرضى المسندين إليه فقط</option><option value="all" ${v.pharmacist_scope === 'all' ? 'selected' : ''}>يراجع جميع المرضى المستحقين للمراجعة</option></select></label>
+      <button class="btn primary" id="saveGen">حفظ</button></div>
+    <div class="card"><h3>معاني الألوان عند الاستيراد</h3>
+      ${Object.keys(s.color_labels).filter((c) => c !== 'none').map((c) => `<div class="row" style="margin-bottom:8px"><span class="dot" style="background:${COLOR_HEX[c]}"></span><b style="width:70px">${s.color_labels[c]}</b><span class="spacer"></span>
+        <select data-color="${c}">${Object.entries(s.action_labels).map(([k, l]) => `<option value="${k}" ${(v.color_actions[c] || 'ignore') === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div>`).join('')}
+      <button class="btn primary" id="saveCol">حفظ</button>
+      <div class="sep"></div><h3>النسخ الاحتياطي</h3><p class="hint">يُحفظ نسخة تلقائية يوميًا عند تشغيل النظام في مجلد data/backups (آخر 14 نسخة).</p>
+      <button class="btn" id="backup">تنزيل نسخة احتياطية الآن</button></div></div>
+    <div class="card" style="margin-top:14px"><h3>قالب ملف التصدير (البريد السعودي)</h3>
+      <p class="hint">التصدير يستخدم افتراضيًا نموذج البريد السعودي (SPL) المدمج بنفس بنيته حرفيًا. إذا تغيّر نموذج الشركة مستقبلًا، ارفع الملف الجديد هنا (يمكن أن يحتوي صفوف أمثلة). يتعرف النظام على العناوين ويستنتج من الأمثلة القيم الثابتة والرقم المرجعي، ثم يكتب البيانات داخل ملفك نفسه دون إعادة حفظه — فتبقى بنيته وبرمجته كما هي حرفيًا. صفوف الأمثلة لا تُصدَّر.</p>
+      <div class="row"><input type="file" id="tplFile" accept=".xlsx,.xlsm"><button class="btn" id="upTpl">رفع القالب</button>
+        <span class="badge b-green">القالب الحالي: ${esc(tpl.file_name)}</span><button class="btn sm" id="dlTpl">تنزيل نسخة فارغة</button>${tpl.builtin ? '' : '<button class="btn sm danger" id="rmTpl">الرجوع لقالب البريد المدمج</button>'}</div>
+      <div class="sep"></div><b>ربط الأعمدة</b>
+      <div class="tw" style="margin-top:8px"><table class="t" id="cols"><thead><tr><th>العمود</th><th>العنوان في الملف</th><th>البيانات</th><th></th></tr></thead><tbody>
+        ${tpl.columns.map((c) => `<tr data-type="${c.type || 'str'}"><td class="num">${c.col}</td><td>${tpl.has_file ? esc(c.header) : `<input type="text" class="ch" value="${esc(c.header)}">`}</td><td>${fieldSel(c.field)}</td><td>${tpl.has_file ? '' : '<button class="icon-btn rm">✕</button>'}</td></tr>`).join('')}</tbody></table></div>
+      <label class="row" style="margin-top:10px">بداية الرقم المرجعي المتسلسل في كل ملف <input type="number" id="refStart" value="${tpl.ref_start || 1}" style="width:110px"></label>
+      <div class="row" style="margin-top:10px">${tpl.has_file ? '' : '<button class="btn" id="addCol">+ عمود</button>'}<button class="btn primary" id="saveCols">حفظ الربط</button><button class="btn" id="testExp">تنزيل ملف تجريبي</button></div></div>
+    <div class="card" style="margin-top:14px"><h3>رسائل واتساب الجاهزة</h3>
+      <p class="hint">المتغيرات: {الاسم} {رقم_الملف} {تاريخ_الاستحقاق} {العيادة} {الجهة} {ملاحظة_للمريض} {المطلوب_تصحيحه} — ولطلب الاستكمال: {رقم_الطلب} {المطلوب}. لا تُدرج الملاحظة الداخلية في أي رسالة.</p>
+      <div class="grid g2">${[['not_eligible', 'غير مستحق حاليًا'], ['no_rx', 'لا توجد وصفة فعّالة'], ['wrong_data', 'بيانات خاطئة'], ['needs_info', 'طلب استكمال بيانات']].map(([k, l]) => `<label class="f"><span>${l}</span><textarea data-wa="${k}" rows="5">${esc(v.wa_templates[k] || '')}</textarea></label>`).join('')}</div>
+      <button class="btn primary" id="saveWa">حفظ الرسائل</button></div>`;
+  $('#saveGen').onclick = () => guard(async () => {
+    await PUT('/api/settings', { org_name: $('#org').value, org_sub: $('#orgSub').value, brand_color: $('#brandColor').value, refill_default: +$('#refillDef').value, lead_days: +$('#lead').value, home_city: $('#city').value, pharmacist_scope: $('#scope').value,
+      refill_options: $('#refill').value.split(/[,،\s]+/).filter(Boolean).map(Number) });
+    const me = await GET('/api/me'); S.settings = me.settings; toast('تم الحفظ'); shell(); route();
+  });
+  $('#logoBtn').onclick = () => $('#logoFile').click();
+  $('#logoFile').onchange = () => {
+    const f = $('#logoFile').files[0]; if (!f) return;
+    if (f.size > 500 * 1024) return toast('حجم الشعار كبير، استخدم صورة أصغر من 500 كيلوبايت', true);
+    const rd = new FileReader();
+    rd.onload = () => guard(async () => { await PUT('/api/settings', { logo: rd.result }); const me = await GET('/api/me'); S.settings = me.settings; toast('تم حفظ الشعار'); shell(); route(); });
+    rd.readAsDataURL(f);
+  };
+  if ($('#logoRm')) $('#logoRm').onclick = () => guard(async () => { await PUT('/api/settings', { logo: '' }); const me = await GET('/api/me'); S.settings = me.settings; shell(); route(); });
+  $('#saveCol').onclick = () => guard(async () => { const ca = {}; $$('[data-color]').forEach((x) => ca[x.dataset.color] = x.value); await PUT('/api/settings', { color_actions: ca }); toast('تم الحفظ'); });
+  $('#saveWa').onclick = () => guard(async () => { const w = {}; $$('[data-wa]').forEach((x) => w[x.dataset.wa] = x.value); await PUT('/api/settings', { wa_templates: w }); toast('تم الحفظ'); });
+  $('#backup').onclick = () => guard(() => download('GET', '/api/backup'));
+  const bindCols = () => {
+    $$('#cols .cf').forEach((s) => s.onchange = () => { s.nextElementSibling.hidden = s.value !== 'fixed'; });
+    $$('#cols .rm').forEach((b) => b.onclick = () => { b.closest('tr').remove(); renum(); });
+  };
+  const renum = () => $$('#cols tbody tr').forEach((tr, i) => tr.cells[0].textContent = i + 1);
+  bindCols();
+  if ($('#addCol')) $('#addCol').onclick = () => { $('#cols tbody').appendChild(el(`<table><tr><td class="num"></td><td><input type="text" class="ch"></td><td>${fieldSel('empty')}</td><td><button class="icon-btn rm">✕</button></td></tr></table>`).rows[0]); renum(); bindCols(); };
+  $('#saveCols').onclick = () => guard(async () => {
+    const cols = $$('#cols tbody tr').map((tr, i) => {
+      const f = $('.cf', tr).value;
+      return { col: tpl.has_file ? +tr.cells[0].textContent : i + 1, header: tpl.has_file ? tr.cells[1].textContent : $('.ch', tr).value, field: f === 'fixed' ? 'fixed:' + $('.cfv', tr).value : f, type: tr.dataset.type || 'str' };
+    });
+    await PUT('/api/settings', { export_columns: cols, ref_start: +$('#refStart').value }); toast('تم حفظ ربط الأعمدة');
+  });
+  $('#testExp').onclick = () => guard(() => download('POST', '/api/export/test'));
+  $('#upTpl').onclick = () => guard(async () => {
+    const f = $('#tplFile').files[0]; if (!f) return toast('اختر ملف القالب', true);
+    const fd = new FormData(); fd.append('file', f);
+    const r = await api('POST', '/api/settings/export-template', fd);
+    toast(`تم رفع القالب — ${r.template.columns.length} عمود. راجع الربط ثم احفظ`); VIEWS.settings();
+  });
+  if ($('#rmTpl')) $('#rmTpl').onclick = () => guard(async () => { if (!(await confirmBox('حذف القالب المرفوع والرجوع لقالب البريد المدمج؟', 'رجوع', true))) return; await api('DELETE', '/api/settings/export-template'); VIEWS.settings(); });
+  if ($('#dlTpl')) $('#dlTpl').onclick = () => guard(() => download('GET', '/api/settings/export-template/file'));
+};
+
+boot();
+
+</script>
+</body>
+</html>
