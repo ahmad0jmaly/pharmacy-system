@@ -1,6 +1,6 @@
 // خادم Node لـ Railway — البيانات على قرص دائم (Volume) في DATA_DIR
 import JSZipLib from 'jszip';
-import { webcrypto } from 'node:crypto';
+import { webcrypto, createHash, timingSafeEqual } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
@@ -791,6 +791,31 @@ const LOCAL = (() => {
   route('POST', '/api/logout', () => { SESS.del('sid'); return { ok: true }; });
   route('GET', '/api/me', () => { const u = auth({ pw: true }); return { user: publicUser(u), settings: { org_name: S('org_name'), org_sub: S('org_sub'), logo: S('logo'), brand_color: S('brand_color'), lead_days: S('lead_days'), refill_options: S('refill_options'), refill_default: S('refill_default'), today: todayS() } }; });
   route('GET', '/api/public-info', async () => { await load(); return { org_name: S('org_name'), org_sub: S('org_sub'), logo: S('logo'), brand_color: S('brand_color'), first_password: ENV.server ? null : D.first_password }; });
+  route('POST', '/api/admin/reset-password', async ({ body: d }) => {
+    const expected = String(process.env.ADMIN_RESET_TOKEN || '');
+    const supplied = String(d.token || '');
+    const expectedBuf = Buffer.from(expected, 'utf8');
+    const suppliedBuf = Buffer.from(supplied, 'utf8');
+    if (expectedBuf.length < 32 || suppliedBuf.length !== expectedBuf.length || !timingSafeEqual(suppliedBuf, expectedBuf)) {
+      throw new ApiError('رمز إعادة التعيين غير صالح أو منتهي', 403);
+    }
+    const tokenHash = createHash('sha256').update(suppliedBuf).digest('hex');
+    if (D.settings.admin_reset_token_hash === tokenHash) throw new ApiError('تم استخدام هذا الرمز من قبل', 403);
+    const pw = String(d.password || '');
+    if (pw.length < 12 || !/[A-Za-z]/.test(pw) || !/\d/.test(pw)) {
+      throw new ApiError('كلمة المرور يجب أن تكون 12 حرفًا على الأقل وتحتوي حرفًا إنجليزيًا ورقمًا');
+    }
+    const u = D.users.find((x) => x.username === 'admin' && x.role === 'admin');
+    if (!u) throw new ApiError('حساب المدير غير موجود', 404);
+    u.pass_hash = await hashPw(pw);
+    u.must_change_pw = 0;
+    u.failed = 0;
+    u.locked_until = null;
+    D.first_password = null;
+    D.settings.admin_reset_token_hash = tokenHash;
+    audit('إعادة تعيين كلمة مرور المدير', 'user', u.id, null, null);
+    return { ok: true };
+  });
   route('POST', '/api/change-password', async ({ body }) => {
     const u = auth({ pw: true });
     if (!(await checkPw(u.pass_hash, body.old_password || ''))) throw new ApiError('كلمة المرور الحالية غير صحيحة');
@@ -1783,7 +1808,7 @@ http.createServer(async (req, res) => {
       res.writeHead(r.status, h); return res.end(Buffer.from(await r.arrayBuffer()));
     }
     if (url.pathname === '/health') { res.writeHead(200); return res.end('ok'); }
-    const file = url.pathname === '/portal' || url.pathname === '/portal/' || url.pathname === '/portal.html' ? 'portal.html' : 'index.html';
+    const file = url.pathname === '/portal' || url.pathname === '/portal/' || url.pathname === '/portal.html' ? 'portal.html' : (url.pathname === '/admin-reset' || url.pathname === '/admin-reset/' || url.pathname === '/admin-reset.html' ? 'admin-reset.html' : 'index.html');
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Frame-Options': 'DENY', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' });
     res.end(fs.readFileSync(path.join(PUB, file)));
   } catch (e) { console.error(e); res.writeHead(500); res.end('{"error":"خطأ في الخادم"}'); }
